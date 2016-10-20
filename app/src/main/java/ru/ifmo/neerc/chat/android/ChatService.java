@@ -36,8 +36,10 @@ import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 
 import ru.ifmo.neerc.task.Task;
+import ru.ifmo.neerc.task.TaskActions;
 import ru.ifmo.neerc.task.TaskStatus;
 import ru.ifmo.neerc.task.TaskRegistry;
+import ru.ifmo.neerc.task.TaskRegistryListener;
 import ru.ifmo.neerc.chat.packet.TaskExtension;
 import ru.ifmo.neerc.chat.packet.TaskExtensionProvider;
 import ru.ifmo.neerc.chat.packet.TaskList;
@@ -77,6 +79,10 @@ public class ChatService extends Service {
     private MultiUserChat muc;
 
     private Set<ChatMessage> messages = Collections.synchronizedSortedSet(new TreeSet<ChatMessage>());
+
+    private static final int NOTIFICATION = 1;
+
+    private int notificationId = NOTIFICATION + 1;
 
     public class LocalBinder extends Binder {
         ChatService getService() {
@@ -215,6 +221,19 @@ public class ChatService extends Service {
         }
     };
 
+    private final TaskRegistryListener taskRegistryListener = new TaskRegistryListener() {
+        @Override
+        public void taskChanged(Task task) {
+            TaskStatus status = task.getStatus(getUser());
+            if (status != null && TaskActions.STATUS_NEW.equals(status.getType()))
+                showTaskNotification(task);
+        }
+
+        @Override
+        public void tasksReset() {
+        }
+    };
+
     @Override
     public void onCreate() {
         Log.d(TAG, "Service created");
@@ -246,6 +265,8 @@ public class ChatService extends Service {
             }
         });
 
+        TaskRegistry.getInstance().addListener(taskRegistryListener);
+
         connect();
     }
 
@@ -258,7 +279,7 @@ public class ChatService extends Service {
     @Override
     public void onDestroy() {
         Log.d(TAG, "Service destroyed");
-        notificationManager.cancel(239);
+        notificationManager.cancel(NOTIFICATION);
     }
 
     @Override
@@ -275,12 +296,33 @@ public class ChatService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         Notification notification = new Notification.Builder(this)
-            .setSmallIcon(R.drawable.ic_logo)
+            .setSmallIcon(R.drawable.ic_chat_24dp)
             .setContentTitle(getString(R.string.app_name))
             .setContentIntent(contentIntent)
-            .getNotification();
+            .setOngoing(true)
+            .build();
 
-        notificationManager.notify(239, notification);
+        notificationManager.notify(NOTIFICATION, notification);
+    }
+
+    private void showTaskNotification(Task task) {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        Notification.Builder builder = new Notification.Builder(this)
+            .setSmallIcon(R.drawable.ic_bulb_24dp)
+            .setContentTitle("New Task")
+            .setContentText(task.getTitle())
+            .setContentIntent(contentIntent)
+            .setAutoCancel(true)
+            .setVibrate(new long[] {0, 1000});
+
+        Notification notification = builder.build();
+        notificationManager.notify(notificationId++, notification);
     }
 
     public boolean hasCredentials() {
