@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import org.jivesoftware.smack.AbstractConnectionListener;
@@ -301,7 +302,7 @@ public class ChatService extends Service {
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
-        Notification notification = new Notification.Builder(this)
+        Notification notification = new NotificationCompat.Builder(this)
             .setSmallIcon(R.drawable.ic_chat_24dp)
             .setContentTitle(getString(R.string.app_name))
             .setContentIntent(contentIntent)
@@ -319,7 +320,7 @@ public class ChatService extends Service {
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
-        Notification.Builder builder = new Notification.Builder(this)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
             .setSmallIcon(R.drawable.ic_bulb_24dp)
             .setContentTitle("New Task")
             .setContentText(task.getTitle())
