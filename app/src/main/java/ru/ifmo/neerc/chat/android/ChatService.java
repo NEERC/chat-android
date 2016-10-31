@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.HashSet;
 
 import android.app.Service;
 import android.app.Notification;
@@ -222,11 +223,16 @@ public class ChatService extends Service {
     };
 
     private final TaskRegistryListener taskRegistryListener = new TaskRegistryListener() {
+        private Set<String> notifiedTasks = new HashSet<String>();
+
         @Override
         public void taskChanged(Task task) {
             TaskStatus status = task.getStatus(getUser());
-            if (status != null && TaskActions.STATUS_NEW.equals(status.getType()))
+            if (status != null && TaskActions.STATUS_NEW.equals(status.getType()) &&
+                !notifiedTasks.contains(task.getId())) {
                 showTaskNotification(task);
+                notifiedTasks.add(task.getId());
+            }
         }
 
         @Override
