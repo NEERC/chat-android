@@ -1,6 +1,8 @@
 package ru.ifmo.neerc.chat.android;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.KeyManagementException;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -13,6 +15,7 @@ import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smack.util.TLSUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 
@@ -38,14 +41,20 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
 
     @Override
     protected Boolean doInBackground(Void... params) {
-        XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
+        XMPPTCPConnectionConfiguration.Builder builder = XMPPTCPConnectionConfiguration.builder()
             .setUsernameAndPassword(username, password)
             .setServiceName(server)
             .setHost(server)
-            .setPort(port)
-            .build();
+            .setPort(port);
 
-        AbstractXMPPConnection conn = new XMPPTCPConnection(config);
+        try {
+            TLSUtils.acceptAllCertificates(builder);
+            TLSUtils.disableHostnameVerificationForTlsCertificicates(builder);
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            Log.e(TAG, "Failed to configure connection", e);
+        }
+
+        AbstractXMPPConnection conn = new XMPPTCPConnection(builder.build());
 
         ReconnectionManager.getInstanceFor(conn).enableAutomaticReconnection();
 
