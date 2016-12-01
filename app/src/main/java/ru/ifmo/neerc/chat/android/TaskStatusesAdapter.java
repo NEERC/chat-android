@@ -51,7 +51,7 @@ public class TaskStatusesAdapter extends RecyclerView.Adapter<TaskStatusesAdapte
 
         public void setStatus(TaskStatus status) {
             statusView.setImageResource(getResourceForStatus(status));
-            if (messageView != null)
+            if (messageView != null && status != null)
                 messageView.setText(status.getValue());
         }
 
