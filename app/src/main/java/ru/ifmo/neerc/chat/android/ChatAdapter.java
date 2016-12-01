@@ -1,5 +1,7 @@
 package ru.ifmo.neerc.chat.android;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -9,7 +11,11 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import ru.ifmo.neerc.chat.ChatMessage;
+
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
+
+    private static final DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
     private final List<ChatMessage> messages = new ArrayList<ChatMessage>();
 
@@ -34,7 +40,14 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         ChatMessage message = messages.get(position);
-        holder.textView.setText(message.toString());
+        String text = "";
+        text += TIME_FORMAT.format(message.getDate()) + " ";
+        text += message.getUser().getName() + ": ";
+        if (message.getTo() != null) {
+            text += message.getTo() + "> ";
+        }
+        text += message.getText();
+        holder.textView.setText(text);
     }
 
     @Override
@@ -42,12 +55,17 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
         return messages.size();
     }
 
-    public void update() {
-        messages.clear();
-        Collection<ChatMessage> source = ChatService.getInstance().getMessages();
-        synchronized (source) {
-            messages.addAll(source);
+    public void update(ChatMessage message) {
+        if (message != null) {
+            messages.add(message);
+            notifyItemInserted(messages.size() - 1);
+        } else {
+            messages.clear();
+            Collection<ChatMessage> source = ChatService.getInstance().getMessages();
+            synchronized (source) {
+                messages.addAll(source);
+            }
+            notifyDataSetChanged();
         }
-        notifyDataSetChanged();
     }
 }

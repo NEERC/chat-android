@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import ru.ifmo.neerc.chat.ChatMessage;
+
 public class ChatFragment extends Fragment {
 
     private RecyclerView chatList;
@@ -61,13 +63,14 @@ public class ChatFragment extends Fragment {
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                updateMessages();
+                ChatMessage message = (ChatMessage) intent.getSerializableExtra("message");
+                updateMessages(message);
             }
         };
 
         getContext().registerReceiver(messageReceiver, new IntentFilter(ChatService.MESSAGE));
 
-        updateMessages();
+        updateMessages(null);
     }
 
     @Override
@@ -77,8 +80,8 @@ public class ChatFragment extends Fragment {
         getContext().unregisterReceiver(messageReceiver);
     }
 
-    public void updateMessages() {
-        adapter.update();
+    public void updateMessages(ChatMessage message) {
+        adapter.update(message);
         chatList.scrollToPosition(adapter.getItemCount() - 1);
     }
 }

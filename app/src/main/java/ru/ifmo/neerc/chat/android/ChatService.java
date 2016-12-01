@@ -2,6 +2,7 @@ package ru.ifmo.neerc.chat.android;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.HashSet;
@@ -33,15 +34,19 @@ import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPConnectionRegistry;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smackx.delay.packet.DelayInformation;
 import org.jivesoftware.smackx.muc.DefaultParticipantStatusListener;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
+
+import org.jxmpp.util.XmppStringUtils;
 
 import ru.ifmo.neerc.task.Task;
 import ru.ifmo.neerc.task.TaskActions;
 import ru.ifmo.neerc.task.TaskStatus;
 import ru.ifmo.neerc.task.TaskRegistry;
 import ru.ifmo.neerc.task.TaskRegistryListener;
+import ru.ifmo.neerc.chat.ChatMessage;
 import ru.ifmo.neerc.chat.packet.TaskExtension;
 import ru.ifmo.neerc.chat.packet.TaskExtensionProvider;
 import ru.ifmo.neerc.chat.packet.TaskList;
@@ -104,12 +109,19 @@ public class ChatService extends Service {
             muc.addMessageListener(new MessageListener() {
                 @Override
                 public void processMessage(Message message) {
-                    Log.d(TAG, "Received message:");
-                    Log.d(TAG, message.toString());
-                    synchronized (messages) {
-                        messages.add(new ChatMessage(message));
+                    UserEntry user = UserRegistry.getInstance().findOrRegister(XmppStringUtils.parseResource(message.getFrom()));
+                    Date time = new Date();
+                    DelayInformation delay = (DelayInformation) message.getExtension(DelayInformation.NAMESPACE);
+                    if (delay != null) {
+                        time = delay.getStamp();
                     }
-                    sendBroadcast(new Intent(ChatService.MESSAGE));
+                    ChatMessage chatMessage = new ChatMessage(message.getBody(), user, null, time);
+                    Log.d(TAG, chatMessage.getUser().getName() + ": " + chatMessage.getText());
+                    synchronized (messages) {
+                        messages.add(chatMessage);
+                    }
+                    sendBroadcast(new Intent(ChatService.MESSAGE)
+                        .putExtra("message", chatMessage));
                 }
             });
             muc.addParticipantStatusListener(new DefaultParticipantStatusListener() {
