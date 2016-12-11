@@ -28,14 +28,16 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
     private String username;
     private String password;
     private String server;
+    private String hostname;
     private int port;
 
-    public ConnectionTask(Context context, String username, String password, String server, int port) {
+    public ConnectionTask(Context context, String username, String password, String server, String hostname, int port) {
         this.context = context;
 
         this.username = username;
         this.password = password;
         this.server = server;
+        this.hostname = hostname;
         this.port = port;
     }
 
@@ -43,7 +45,7 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
     protected Boolean doInBackground(Void... params) {
         XMPPTCPConnectionConfiguration.Builder builder = XMPPTCPConnectionConfiguration.builder()
             .setUsernameAndPassword(username, password)
-            .setServiceName(server)
+            .setServiceName(hostname)
             .setHost(server)
             .setPort(port);
 

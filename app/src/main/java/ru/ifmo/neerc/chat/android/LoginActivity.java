@@ -16,6 +16,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputLayout usernameWrapper;
     private TextInputLayout passwordWrapper;
     private TextInputLayout serverWrapper;
+    private TextInputLayout hostnameWrapper;
     private TextInputLayout portWrapper;
 
     @Override
@@ -26,12 +27,14 @@ public class LoginActivity extends AppCompatActivity {
         usernameWrapper = (TextInputLayout) findViewById(R.id.usernameWrapper);
         passwordWrapper = (TextInputLayout) findViewById(R.id.passwordWrapper);
         serverWrapper = (TextInputLayout) findViewById(R.id.serverWrapper);
+        hostnameWrapper = (TextInputLayout) findViewById(R.id.hostnameWrapper);
         portWrapper = (TextInputLayout) findViewById(R.id.portWrapper);
 
         final SharedPreferences preferences = getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE);
         usernameWrapper.getEditText().setText(preferences.getString("username", ""));
         passwordWrapper.getEditText().setText(preferences.getString("password", ""));
         serverWrapper.getEditText().setText(preferences.getString("server", ""));
+        hostnameWrapper.getEditText().setText(preferences.getString("hostname", "10.0.0.1"));
         portWrapper.getEditText().setText(String.valueOf(preferences.getInt("port", 5222)));
 
         Button login = (Button)findViewById(R.id.login);
@@ -45,6 +48,7 @@ public class LoginActivity extends AppCompatActivity {
                     .putString("username", usernameWrapper.getEditText().getText().toString())
                     .putString("password", passwordWrapper.getEditText().getText().toString())
                     .putString("server", serverWrapper.getEditText().getText().toString())
+                    .putString("hostname", hostnameWrapper.getEditText().getText().toString())
                     .putInt("port", Integer.parseInt(portWrapper.getEditText().getText().toString()))
                     .commit();
                 
@@ -83,6 +87,14 @@ public class LoginActivity extends AppCompatActivity {
             return false;
         } else {
             serverWrapper.setError(null);
+        }
+
+        String hostname = hostnameWrapper.getEditText().getText().toString();
+        if (hostname.isEmpty()) {
+            hostnameWrapper.setError("Hostname can not be empty");
+            return false;
+        } else {
+            hostnameWrapper.setError(null);
         }
 
         String port = portWrapper.getEditText().getText().toString();

@@ -105,7 +105,7 @@ public class ChatService extends Service {
         @Override
         public void authenticated(XMPPConnection connection, boolean resumed) {
             muc = MultiUserChatManager.getInstanceFor(connection)
-                .getMultiUserChat("neerc@conference." + connection.getHost());
+                .getMultiUserChat("neerc@conference." + connection.getServiceName());
             muc.addMessageListener(new MessageListener() {
                 @Override
                 public void processMessage(Message message) {
@@ -150,7 +150,7 @@ public class ChatService extends Service {
             }
 
             TaskList tasksQuery = new TaskList();
-            tasksQuery.setTo("neerc." + connection.getHost());
+            tasksQuery.setTo("neerc." + connection.getServiceName());
 
             try {
                 connection.sendStanza(tasksQuery);
@@ -159,7 +159,7 @@ public class ChatService extends Service {
             }
 
             UserList usersQuery = new UserList();
-            usersQuery.setTo("neerc." + connection.getHost());
+            usersQuery.setTo("neerc." + connection.getServiceName());
 
             try {
                 connection.sendStanza(usersQuery);
@@ -353,18 +353,20 @@ public class ChatService extends Service {
         String username = preferences.getString("username", null);
         String password = preferences.getString("password", null);
         String server = preferences.getString("server", null);
+        String hostname = preferences.getString("hostname", null);
         int port = preferences.getInt("port", 5222);
 
         if (username == null ||
             password == null ||
-            server == null) {
+            server == null ||
+            hostname == null) {
             hasCredentials = false;
             return;
         }
 
         hasCredentials = true;
 
-        connectionTask = new ConnectionTask(this, username, password, server, port);
+        connectionTask = new ConnectionTask(this, username, password, server, hostname, port);
         connectionTask.execute();
     }
 
@@ -405,7 +407,7 @@ public class ChatService extends Service {
     public void sendStatus(Task task, TaskStatus status) {
         TaskStatusIQ iq = new TaskStatusIQ(task, status);
         iq.setType(TaskStatusIQ.Type.set);
-        iq.setTo("neerc." + connection.getHost());
+        iq.setTo("neerc." + connection.getServiceName());
 
         Log.d(TAG, "Sending status:");
         Log.d(TAG, iq.toString());
