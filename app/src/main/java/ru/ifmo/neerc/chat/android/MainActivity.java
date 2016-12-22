@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.TabLayout;
@@ -153,6 +154,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
+
+        SharedPreferences preferences = getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE);
+        String username = preferences.getString("username", "");
+        getSupportActionBar().setTitle(username);
 
         statusReceiver = new BroadcastReceiver() {
             @Override
