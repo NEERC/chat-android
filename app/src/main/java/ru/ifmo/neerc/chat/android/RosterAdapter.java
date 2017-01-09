@@ -1,7 +1,7 @@
 package ru.ifmo.neerc.chat.android;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import android.support.v7.widget.LinearLayoutManager;
@@ -65,6 +65,7 @@ public class RosterAdapter extends RecyclerView.Adapter<RosterAdapter.ViewHolder
     public void update() {
         users.clear();
         users.addAll(UserRegistry.getInstance().getUsers());
+        Collections.sort(users);
         notifyDataSetChanged();
     }
 }
