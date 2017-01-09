@@ -8,6 +8,7 @@ import java.util.List;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -20,17 +21,22 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     private final List<ChatMessage> messages = new ArrayList<ChatMessage>();
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView textView;
+        public TextView timeView;
+        public TextView usernameView;
+        public TextView messageView;
 
-        public ViewHolder(TextView view) {
+        public ViewHolder(View view) {
             super(view);
-            textView = view;
+
+            timeView = (TextView) view.findViewById(R.id.time);
+            usernameView = (TextView) view.findViewById(R.id.username);
+            messageView = (TextView) view.findViewById(R.id.message);
         }
     }
 
     @Override
     public ChatAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        TextView view = (TextView) LayoutInflater.from(parent.getContext())
+        View view = LayoutInflater.from(parent.getContext())
             .inflate(R.layout.message, parent, false);
 
         ViewHolder holder = new ViewHolder(view);
@@ -40,14 +46,14 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         ChatMessage message = messages.get(position);
+        holder.timeView.setText(TIME_FORMAT.format(message.getDate()));
+        holder.usernameView.setText(message.getUser().getName());
         String text = "";
-        text += TIME_FORMAT.format(message.getDate()) + " ";
-        text += message.getUser().getName() + ": ";
         if (message.getTo() != null) {
             text += message.getTo() + "> ";
         }
         text += message.getText();
-        holder.textView.setText(text);
+        holder.messageView.setText(text);
     }
 
     @Override
