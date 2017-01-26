@@ -49,6 +49,7 @@ import ru.ifmo.neerc.task.TaskRegistryListener;
 import ru.ifmo.neerc.chat.ChatMessage;
 import ru.ifmo.neerc.chat.packet.TaskExtension;
 import ru.ifmo.neerc.chat.packet.TaskExtensionProvider;
+import ru.ifmo.neerc.chat.packet.TaskIQ;
 import ru.ifmo.neerc.chat.packet.TaskList;
 import ru.ifmo.neerc.chat.packet.TaskListProvider;
 import ru.ifmo.neerc.chat.packet.TaskStatusIQ;
@@ -416,6 +417,21 @@ public class ChatService extends Service {
             connection.sendStanza(iq);
         } catch (SmackException.NotConnectedException e) {
             Log.e(TAG, "Failed to send status", e);
+        }
+    }
+
+    public void sendTask(Task task) {
+        TaskIQ iq = new TaskIQ(task);
+        iq.setType(TaskIQ.Type.set);
+        iq.setTo("neerc." + connection.getServiceName());
+
+        Log.d(TAG, "Sending task:");
+        Log.d(TAG, iq.toString());
+
+        try {
+            connection.sendStanza(iq);
+        } catch (SmackException.NotConnectedException e) {
+            Log.e(TAG, "Failed to send task", e);
         }
     }
 }
