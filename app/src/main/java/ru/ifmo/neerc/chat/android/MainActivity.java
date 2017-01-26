@@ -14,7 +14,9 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -24,6 +26,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.util.Log;
@@ -63,6 +66,16 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        final FloatingActionButton addButton = (FloatingActionButton) findViewById(R.id.add);
+
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment fragment = new CreateTaskDialogFragment();
+                fragment.show(getSupportFragmentManager(), "task_create");
+            }
+        });
+
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
 
         final ChatPagerAdapter pagerAdapter = new ChatPagerAdapter(getSupportFragmentManager());
@@ -71,12 +84,17 @@ public class MainActivity extends AppCompatActivity {
         viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
-                if (position == ChatPagerAdapter.FRAGMENT_TASKS)
-                    return;
+                if (position == ChatPagerAdapter.FRAGMENT_TASKS) {
+                    if (chatService != null && chatService.isPowerUser()) {
+                        addButton.show();
+                    }
+                } else {
+                    addButton.hide();
 
-                Fragment fragment = pagerAdapter.getFragment(ChatPagerAdapter.FRAGMENT_TASKS);
-                if (fragment != null)
-                    ((TasksFragment) fragment).onTabUnselected();
+                    Fragment fragment = pagerAdapter.getFragment(ChatPagerAdapter.FRAGMENT_TASKS);
+                    if (fragment != null)
+                        ((TasksFragment) fragment).onTabUnselected();
+                }
             }
         });
 

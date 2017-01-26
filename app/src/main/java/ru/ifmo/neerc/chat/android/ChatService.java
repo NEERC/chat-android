@@ -390,6 +390,14 @@ public class ChatService extends Service {
         return username;
     }
 
+    public boolean isPowerUser() {
+        String user = getUser();
+        if (user == null)
+            return false;
+        UserEntry userEntry = UserRegistry.getInstance().findOrRegister(user);
+        return userEntry.isPower();
+    }
+
     public Collection<ChatMessage> getMessages() {
         return messages;
     }
