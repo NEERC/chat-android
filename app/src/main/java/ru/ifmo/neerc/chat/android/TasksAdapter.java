@@ -186,7 +186,10 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
     }
 
     public Task getSelectedTask() {
-        return tasks.get(selectedPosition - 1);
+        int index = selectedPosition - 1;
+        if (index < 0 || index >= tasks.size())
+            return null;
+        return tasks.get(index);
     }
 
     public Task getTask(int position) {

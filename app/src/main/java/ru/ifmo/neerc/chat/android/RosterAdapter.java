@@ -2,6 +2,7 @@ package ru.ifmo.neerc.chat.android;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +27,11 @@ public class RosterAdapter extends RecyclerView.Adapter<RosterAdapter.ViewHolder
     private static int TYPE_USER  = 0;
     private static int TYPE_GROUP = 1;
 
+    private boolean selectable = false;
+
+    private final Map<String, Set<UserEntry>> groups = new TreeMap<String, Set<UserEntry>>();
     private final List<Object> items = new ArrayList<Object>();
+    private final Set<Object> selection = new HashSet<Object>();
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         private ImageView iconView;
@@ -34,6 +39,16 @@ public class RosterAdapter extends RecyclerView.Adapter<RosterAdapter.ViewHolder
 
         public ViewHolder(View view) {
             super(view);
+
+            if (isSelectable()) {
+                view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        toggleSelection(items.get(getAdapterPosition()));
+                    }
+                });
+            }
+
             iconView = (ImageView) view.findViewById(R.id.icon);
             nameView = (TextView) view.findViewById(R.id.name);
         }
@@ -84,6 +99,7 @@ public class RosterAdapter extends RecyclerView.Adapter<RosterAdapter.ViewHolder
             holder.setUser((UserEntry) item);
         else if (item instanceof String)
             holder.setGroup((String) item);
+        holder.itemView.setActivated(isSelected(item));
     }
 
     @Override
@@ -92,7 +108,7 @@ public class RosterAdapter extends RecyclerView.Adapter<RosterAdapter.ViewHolder
     }
 
     public void update() {
-        Map<String, Set<UserEntry>> groups = new TreeMap<String, Set<UserEntry>>();
+        groups.clear();
         for (UserEntry user : UserRegistry.getInstance().getUsers()) {
             if (!groups.containsKey(user.getGroup()))
                 groups.put(user.getGroup(), new TreeSet<UserEntry>());
@@ -108,6 +124,58 @@ public class RosterAdapter extends RecyclerView.Adapter<RosterAdapter.ViewHolder
             }
         }
 
+        notifyDataSetChanged();
+    }
+
+    public boolean isSelectable() {
+        return selectable;
+    }
+
+    public void setSelectable(boolean selectable) {
+        this.selectable = selectable;
+    }
+
+    private void toggleSelection(Object item) {
+        setSelected(item, !isSelected(item));
+
+        if (item instanceof UserEntry) {
+            UserEntry user = (UserEntry) item;
+            if (!isSelected(user)) {
+                setSelected(user.getGroup(), false);
+            }
+        } else if (item instanceof String) {
+            String group = (String) item;
+            for (UserEntry user : groups.get(group)) {
+                setSelected(user, isSelected(group));
+            }
+        }
+    }
+
+    private boolean isSelected(Object item) {
+        return selection.contains(item);
+    }
+
+    private void setSelected(Object item, boolean selected) {
+        if (selected)
+            selection.add(item);
+        else
+            selection.remove(item);
+
+        notifyItemChanged(items.indexOf(item));
+    }
+
+    public Set<UserEntry> getSelectedUsers() {
+        Set<UserEntry> users = new HashSet<UserEntry>();
+        for (Object item : selection) {
+            if (item instanceof UserEntry)
+                users.add((UserEntry) item);
+        }
+        return users;
+    }
+
+    public void setSelectedUsers(Set<UserEntry> users) {
+        selection.clear();
+        selection.addAll(users);
         notifyDataSetChanged();
     }
 }

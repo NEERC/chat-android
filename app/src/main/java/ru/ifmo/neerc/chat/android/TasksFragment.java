@@ -46,6 +46,11 @@ public class TasksFragment extends Fragment {
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
             Task task = adapter.getSelectedTask();
             String user = ChatService.getInstance().getUser();
+
+            if (task == null || user == null) {
+                mode.finish();
+                return true;
+            }
             
             menu.findItem(R.id.started)
                 .setVisible(TaskActions.isActionSupported(task, user, TaskActions.ACTION_START));
@@ -56,6 +61,8 @@ public class TasksFragment extends Fragment {
 
             boolean isPower = ChatService.getInstance().isPowerUser();
 
+            menu.findItem(R.id.assign)
+                .setVisible(isPower);
             menu.findItem(R.id.delete)
                 .setVisible(isPower);
 
@@ -66,6 +73,11 @@ public class TasksFragment extends Fragment {
         public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
             Task task = adapter.getSelectedTask();
             String user = ChatService.getInstance().getUser();
+
+            if (task == null || user == null) {
+                mode.finish();
+                return true;
+            }
 
             final int action;
 
@@ -80,8 +92,10 @@ public class TasksFragment extends Fragment {
                     action = TaskActions.ACTION_FAIL;
                     break;
                 case R.id.delete:
-                    Task remove = new Task(task.getId(), "remove", "");
-                    ChatService.getInstance().sendTask(remove);
+                    deleteTask();
+                    return true;
+                case R.id.assign:
+                    assignTask();
                     return true;
                 default:
                     return false;
@@ -121,11 +135,41 @@ public class TasksFragment extends Fragment {
         Task task = adapter.getSelectedTask();
         String user = ChatService.getInstance().getUser();
 
+        if (task == null || user == null) {
+            actionMode.finish();
+            return;
+        }
+
         if (!TaskActions.isActionSupported(task, user, action))
             return;
 
         String type = TaskActions.getNewStatus(task, user, action);
         ChatService.getInstance().sendStatus(task, new TaskStatus(type, value));
+        actionMode.finish();
+    }
+
+    public void assignTask() {
+        Task task = adapter.getSelectedTask();
+        if (task == null)
+            return;
+
+        DialogFragment fragment = new AssignTaskDialogFragment();
+
+        Bundle arguments = new Bundle();
+        arguments.putString("taskId", task.getId());
+
+        fragment.setArguments(arguments);
+        fragment.show(getActivity().getSupportFragmentManager(), "task_assign");
+    }
+
+    public void deleteTask() {
+        Task task = adapter.getSelectedTask();
+
+        if (task != null) {
+            Task remove = new Task(task.getId(), "remove", "");
+            ChatService.getInstance().sendTask(remove);
+        }
+
         actionMode.finish();
     }
 
@@ -184,6 +228,8 @@ public class TasksFragment extends Fragment {
     }
 
     public void updateTasks() {
+        if (actionMode != null)
+            actionMode.finish();
         adapter.update();
     }
 
