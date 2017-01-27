@@ -54,6 +54,11 @@ public class TasksFragment extends Fragment {
             menu.findItem(R.id.failed)
                 .setVisible(TaskActions.isActionSupported(task, user, TaskActions.ACTION_FAIL));
 
+            boolean isPower = ChatService.getInstance().isPowerUser();
+
+            menu.findItem(R.id.delete)
+                .setVisible(isPower);
+
             return true;
         }
 
@@ -74,6 +79,10 @@ public class TasksFragment extends Fragment {
                 case R.id.failed:
                     action = TaskActions.ACTION_FAIL;
                     break;
+                case R.id.delete:
+                    Task remove = new Task(task.getId(), "remove", "");
+                    ChatService.getInstance().sendTask(remove);
+                    return true;
                 default:
                     return false;
             }
