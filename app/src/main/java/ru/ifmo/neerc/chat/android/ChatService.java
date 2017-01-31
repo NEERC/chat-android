@@ -38,6 +38,7 @@ import org.jivesoftware.smackx.delay.packet.DelayInformation;
 import org.jivesoftware.smackx.muc.DefaultParticipantStatusListener;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
+import org.jivesoftware.smackx.muc.ParticipantStatusListener;
 
 import org.jxmpp.util.XmppStringUtils;
 
@@ -105,49 +106,6 @@ public class ChatService extends Service {
     private final ConnectionListener connectionListener = new AbstractConnectionListener() {
         @Override
         public void authenticated(XMPPConnection connection, boolean resumed) {
-            muc = MultiUserChatManager.getInstanceFor(connection)
-                .getMultiUserChat("neerc@conference." + connection.getServiceName());
-            muc.addMessageListener(new MessageListener() {
-                @Override
-                public void processMessage(Message message) {
-                    UserEntry user = UserRegistry.getInstance().findOrRegister(XmppStringUtils.parseResource(message.getFrom()));
-                    Date time = new Date();
-                    DelayInformation delay = (DelayInformation) message.getExtension(DelayInformation.NAMESPACE);
-                    if (delay != null) {
-                        time = delay.getStamp();
-                    }
-                    ChatMessage chatMessage = new ChatMessage(message.getBody(), user, null, time);
-                    Log.d(TAG, chatMessage.getUser().getName() + ": " + chatMessage.getText());
-
-                    if (chatMessage.getTo() != null
-                            && !chatMessage.getUser().getName().equals(getUser())
-                            && !chatMessage.getTo().equals(getUser())) {
-                        return;
-                    }
-
-                    synchronized (messages) {
-                        messages.add(chatMessage);
-                    }
-                    sendBroadcast(new Intent(ChatService.MESSAGE)
-                        .putExtra("message", chatMessage));
-                }
-            });
-            muc.addParticipantStatusListener(new DefaultParticipantStatusListener() {
-                @Override
-                public void joined(String participant) {
-                    Log.d(TAG, "User joined: " + participant);
-                    UserRegistry.getInstance().putOnline(participant);
-                    sendBroadcast(new Intent(ChatService.USER));
-                }
-
-                @Override
-                public void left(String participant) {
-                    Log.d(TAG, "User left: " + participant);
-                    UserRegistry.getInstance().putOffline(participant);
-                    sendBroadcast(new Intent(ChatService.USER));
-                }
-            });
-
             String username = connection.getUser();
             username = username.substring(0, username.indexOf('@'));
 
@@ -200,6 +158,48 @@ public class ChatService extends Service {
         public void reconnectionSuccessful() {
             sendBroadcast(new Intent(ChatService.STATUS)
                 .putExtra("status", ChatService.STATUS_CONNECTED));
+        }
+    };
+
+    private final MessageListener messageListener = new MessageListener() {
+        @Override
+        public void processMessage(Message message) {
+            UserEntry user = UserRegistry.getInstance().findOrRegister(XmppStringUtils.parseResource(message.getFrom()));
+            Date time = new Date();
+            DelayInformation delay = (DelayInformation) message.getExtension(DelayInformation.NAMESPACE);
+            if (delay != null) {
+                time = delay.getStamp();
+            }
+            ChatMessage chatMessage = new ChatMessage(message.getBody(), user, null, time);
+            Log.d(TAG, chatMessage.getUser().getName() + ": " + chatMessage.getText());
+
+            if (chatMessage.getTo() != null
+                    && !chatMessage.getUser().getName().equals(getUser())
+                    && !chatMessage.getTo().equals(getUser())) {
+                return;
+            }
+
+            synchronized (messages) {
+                messages.add(chatMessage);
+            }
+            sendBroadcast(new Intent(ChatService.MESSAGE)
+                .putExtra("message", chatMessage));
+        }
+    };
+
+    private final ParticipantStatusListener participantStatusListener = new DefaultParticipantStatusListener() {
+        @Override
+        public void joined(String participant) {
+            Log.d(TAG, "User joined: " + participant);
+            UserRegistry.getInstance().putOnline(participant);
+            sendBroadcast(new Intent(ChatService.USER));
+        }
+
+        @Override
+        public void left(String participant) {
+            Log.d(TAG, "User left: " + participant);
+            UserRegistry.getInstance().putOffline(participant);
+            sendBroadcast(new Intent(ChatService.USER));
         }
     };
 
@@ -289,6 +289,11 @@ public class ChatService extends Service {
                 connection.addAsyncStanzaListener(userListener,
                     new StanzaTypeFilter(UserList.class)
                 );
+
+                muc = MultiUserChatManager.getInstanceFor(connection)
+                    .getMultiUserChat("neerc@conference." + connection.getServiceName());
+                muc.addMessageListener(messageListener);
+                muc.addParticipantStatusListener(participantStatusListener);
             }
         });
 
