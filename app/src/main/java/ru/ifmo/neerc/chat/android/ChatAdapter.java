@@ -54,6 +54,24 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
         }
         text += message.getText();
         holder.messageView.setText(text);
+
+        int style = R.style.ChatMessage;
+
+        if (message.getUser().isPower()) {
+            switch (message.getType()) {
+                case info:
+                    style = R.style.ChatMessage_Info;
+                    break;
+                case question:
+                    style = R.style.ChatMessage_Question;
+                    break;
+                case urgent:
+                    style = R.style.ChatMessage_Urgent;
+                    break;
+            }
+        }
+
+        holder.messageView.setTextAppearance(holder.messageView.getContext(), style);
     }
 
     @Override

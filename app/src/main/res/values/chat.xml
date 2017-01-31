@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ChatMessage" parent="@android:style/TextAppearance.Material">
+    </style>
+
+    <style name="ChatMessage.Info">
+        <item name="android:textColor">#4CAF50</item>
+    </style>
+
+    <style name="ChatMessage.Question">
+        <item name="android:textColor">#2196F3</item>
+    </style>
+
+    <style name="ChatMessage.Urgent">
+        <item name="android:textColor">#F44336</item>
+    </style>
+</resources>
