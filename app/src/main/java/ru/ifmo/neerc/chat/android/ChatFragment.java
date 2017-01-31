@@ -51,7 +51,10 @@ public class ChatFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 String message = messageInput.getText().toString();
+                if (message.trim().isEmpty())
+                    return;
                 ChatService.getInstance().sendMessage(message);
+                messageInput.getText().clear();
             }
         });
     }
