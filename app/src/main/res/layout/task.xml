@@ -3,22 +3,39 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:minHeight="88dp"
     android:orientation="horizontal"
-    android:paddingLeft="4dp"
-    android:paddingRight="4dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
     android:background="?android:attr/activatedBackgroundIndicator">
 
-    <TextView
-        android:id="@+id/title"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_gravity="center_vertical"/>
+        android:paddingRight="16dp"
+        android:orientation="vertical">
 
-    <ru.ifmo.neerc.chat.android.DisabledRecyclerView
-        android:id="@+id/status_list"
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+        <ru.ifmo.neerc.chat.android.DisabledRecyclerView
+            android:id="@+id/status_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/expand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"/>
+        android:src="@drawable/ic_chevron_down_grey600_24dp"
+        />
 
 </LinearLayout>

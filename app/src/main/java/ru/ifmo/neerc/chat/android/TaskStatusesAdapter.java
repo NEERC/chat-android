@@ -3,8 +3,7 @@ package ru.ifmo.neerc.chat.android;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Map;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -21,7 +20,7 @@ import ru.ifmo.neerc.task.TaskStatus;
 
 public class TaskStatusesAdapter extends RecyclerView.Adapter<TaskStatusesAdapter.ViewHolder> {
 
-    private boolean showDetails;
+    private boolean expanded = false;
 
     private List<String> users = new ArrayList<String>();
     private List<TaskStatus> statuses = new ArrayList<TaskStatus>();
@@ -74,13 +73,14 @@ public class TaskStatusesAdapter extends RecyclerView.Adapter<TaskStatusesAdapte
         }
     }
 
-    public TaskStatusesAdapter(boolean showDetails) {
-        this.showDetails = showDetails;
+    @Override
+    public int getItemViewType(int position) {
+        return expanded ? 1 : 0;
     }
 
     @Override
     public TaskStatusesAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        int layout = showDetails ? R.layout.task_status_detail : R.layout.task_status;
+        int layout = expanded ? R.layout.task_status_detail : R.layout.task_status;
         View view = LayoutInflater.from(parent.getContext())
             .inflate(layout, parent, false);
         return new ViewHolder(view);
@@ -90,6 +90,8 @@ public class TaskStatusesAdapter extends RecyclerView.Adapter<TaskStatusesAdapte
     public void onBindViewHolder(ViewHolder holder, int position) {
         String user = users.get(position);
         TaskStatus status = statuses.get(position);
+        if (status == null)
+            user = "";
         holder.setUser(user);
         holder.setStatus(status);
     }
@@ -99,13 +101,23 @@ public class TaskStatusesAdapter extends RecyclerView.Adapter<TaskStatusesAdapte
         return statuses.size();
     }
 
-    public void setUsers(List<String> users) {
-        this.users = users;
+    public void setExpanded(boolean expanded) {
+        this.expanded = expanded;
         notifyDataSetChanged();
     }
 
-    public void setStatuses(List<TaskStatus> statuses) {
-        this.statuses = statuses;
+    public void setStatuses(Map<String, TaskStatus> statuses) {
+        this.users.clear();
+        this.statuses.clear();
+
+        for (Map.Entry<String, TaskStatus> entry : statuses.entrySet()) {
+            if (expanded && entry.getValue() == null)
+                continue;
+
+            this.users.add(entry.getKey());
+            this.statuses.add(entry.getValue());
+        }
+
         notifyDataSetChanged();
     }
 }

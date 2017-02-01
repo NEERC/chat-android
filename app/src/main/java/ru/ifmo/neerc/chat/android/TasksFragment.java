@@ -127,7 +127,7 @@ public class TasksFragment extends Fragment {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             actionMode = null;
-            adapter.setSelectedTask(0);
+            adapter.setSelectedTask(-1);
         }
     };
 
