@@ -9,7 +9,12 @@ android {
     buildToolsVersion "24.0.3"
 
     defaultConfig {
+        applicationId "ru.ifmo.neerc.chat.android"
+
         minSdkVersion 14
+
+        versionCode 1
+        versionName "0.1.0"
     }
 
     signingConfigs {
