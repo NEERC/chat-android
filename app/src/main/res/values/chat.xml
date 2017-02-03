@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="ChatMessage" parent="@android:style/TextAppearance.Material">
+    <style name="ChatMessage">
         <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
 
