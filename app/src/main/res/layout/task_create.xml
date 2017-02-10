@@ -24,7 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
-            android:hint="Title" />
+            android:hint="@string/create_task_title_hint" />
     </android.support.design.widget.TextInputLayout>
 
 </LinearLayout>

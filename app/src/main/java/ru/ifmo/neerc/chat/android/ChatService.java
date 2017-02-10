@@ -363,7 +363,7 @@ public class ChatService extends Service {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
             .setSmallIcon(R.drawable.ic_bulb_24dp)
-            .setContentTitle("New Task")
+            .setContentTitle(getResources().getText(R.string.notification_new_task))
             .setContentText(task.getTitle())
             .setContentIntent(contentIntent)
             .setAutoCancel(true)

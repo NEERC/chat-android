@@ -56,9 +56,9 @@ public class InputDialogFragment extends DialogFragment {
         inputEdit.setText(text);
 
         builder.setView(view)
-               .setTitle("Message")
-               .setPositiveButton("OK", listener)
-               .setNegativeButton("Cancel", listener);
+               .setTitle(R.string.input_title)
+               .setPositiveButton(R.string.all_ok, listener)
+               .setNegativeButton(R.string.all_cancel, listener);
 
         return builder.create();
     }

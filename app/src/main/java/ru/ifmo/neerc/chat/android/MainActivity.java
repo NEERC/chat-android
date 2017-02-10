@@ -157,11 +157,11 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case FRAGMENT_ROSTER:
-                    return "Roster";
+                    return getResources().getText(R.string.tab_roster);
                 case FRAGMENT_CHAT:
-                    return "Chat";
+                    return getResources().getText(R.string.tab_chat);
                 case FRAGMENT_TASKS:
-                    return "Tasks";
+                    return getResources().getText(R.string.tab_tasks);
                 default:
                     return null;
             }
@@ -199,13 +199,13 @@ public class MainActivity extends AppCompatActivity {
                 int status = intent.getIntExtra("status", 0);
                 switch (status) {
                     case ChatService.STATUS_DISCONNECTED:
-                        getSupportActionBar().setSubtitle("Disconnected");
+                        getSupportActionBar().setSubtitle(R.string.status_disconnected);
                         break;
                     case ChatService.STATUS_CONNECTING:
-                        getSupportActionBar().setSubtitle("Connecting...");
+                        getSupportActionBar().setSubtitle(R.string.status_connecting);
                         break;
                     case ChatService.STATUS_CONNECTED:
-                        getSupportActionBar().setSubtitle("Connected");
+                        getSupportActionBar().setSubtitle(R.string.status_connected);
                         break;
                 }
             }

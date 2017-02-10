@@ -76,15 +76,15 @@ public class AssignTaskDialogFragment extends DialogFragment {
 
         userList.setAdapter(usersAdapter);
 
-        builder.setTitle("Assign task")
+        builder.setTitle(R.string.assign_task_title)
             .setView(view)
-            .setPositiveButton("Assign", new DialogInterface.OnClickListener() {
+            .setPositiveButton(R.string.assign_task_assign, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int id) {
                     assign();
                 }
             })
-            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            .setNegativeButton(R.string.all_cancel, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int id) {
 

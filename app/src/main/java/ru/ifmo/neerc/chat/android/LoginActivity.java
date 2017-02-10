@@ -83,7 +83,7 @@ public class LoginActivity extends AppCompatActivity {
     private boolean validate() {
         String username = usernameWrapper.getEditText().getText().toString();
         if (username.isEmpty()) {
-            usernameWrapper.setError("Username can not be empty");
+            usernameWrapper.setError(getResources().getText(R.string.login_username_error));
             return false;
         } else {
             usernameWrapper.setError(null);
@@ -91,7 +91,7 @@ public class LoginActivity extends AppCompatActivity {
 
         String password = passwordWrapper.getEditText().getText().toString();
         if (password.isEmpty()) {
-            passwordWrapper.setError("Password can not be empty");
+            passwordWrapper.setError(getResources().getText(R.string.login_password_error));
             return false;
         } else {
             passwordWrapper.setError(null);
@@ -99,7 +99,7 @@ public class LoginActivity extends AppCompatActivity {
 
         String server = serverWrapper.getEditText().getText().toString();
         if (server.isEmpty()) {
-            serverWrapper.setError("Server can not be empty");
+            serverWrapper.setError(getResources().getText(R.string.login_server_error));
             return false;
         } else {
             serverWrapper.setError(null);
@@ -107,7 +107,7 @@ public class LoginActivity extends AppCompatActivity {
 
         String hostname = hostnameWrapper.getEditText().getText().toString();
         if (hostname.isEmpty()) {
-            hostnameWrapper.setError("Hostname can not be empty");
+            hostnameWrapper.setError(getResources().getText(R.string.login_hostname_error));
             return false;
         } else {
             hostnameWrapper.setError(null);
@@ -122,7 +122,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if (portNumber < 1 || portNumber > 65535) {
-            portWrapper.setError("Port should be in the range 1-65535");
+            portWrapper.setError(getResources().getText(R.string.login_port_error));
             return false;
         } else {
             portWrapper.setError(null);

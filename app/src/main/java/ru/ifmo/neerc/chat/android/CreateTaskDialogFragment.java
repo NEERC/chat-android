@@ -136,15 +136,15 @@ public class CreateTaskDialogFragment extends DialogFragment {
 
         titleWrapper = (TextInputLayout) view.findViewById(R.id.titleWrapper);
 
-        builder.setTitle("New task")
+        builder.setTitle(R.string.create_task_title)
             .setView(view)
-            .setPositiveButton("Create", new DialogInterface.OnClickListener() {
+            .setPositiveButton(R.string.create_task_create, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int id) {
 
                 }
             })
-            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            .setNegativeButton(R.string.all_cancel, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int id) {
 
@@ -179,7 +179,7 @@ public class CreateTaskDialogFragment extends DialogFragment {
 
     private boolean validate() {
         if (getTaskTitle().isEmpty()) {
-            titleWrapper.setError("Task title can not be empty");
+            titleWrapper.setError(getResources().getText(R.string.create_task_title_error));
             return false;
         } else {
             titleWrapper.setError(null);
