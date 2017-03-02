@@ -19,6 +19,7 @@ package ru.ifmo.neerc.chat.android;
 import java.util.HashSet;
 import java.util.Set;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -43,6 +44,7 @@ public class AssignTaskDialogFragment extends DialogFragment {
 
     private String taskId;
 
+    @SuppressLint("InflateParams")
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         taskId = getArguments().getString("taskId");

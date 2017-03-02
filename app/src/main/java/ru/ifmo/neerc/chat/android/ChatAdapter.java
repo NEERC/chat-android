@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -32,7 +33,7 @@ import ru.ifmo.neerc.chat.ChatMessage;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
 
-    private static final DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
+    private static final DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss", Locale.US);
 
     private final List<ChatMessage> messages = new ArrayList<ChatMessage>();
 

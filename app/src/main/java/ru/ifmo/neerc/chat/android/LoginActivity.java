@@ -66,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
                     .putString("server", serverWrapper.getEditText().getText().toString())
                     .putString("hostname", hostnameWrapper.getEditText().getText().toString())
                     .putInt("port", Integer.parseInt(portWrapper.getEditText().getText().toString()))
-                    .commit();
+                    .apply();
                 
                 setResult(RESULT_OK);
                 finish();

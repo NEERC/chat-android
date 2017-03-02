@@ -16,12 +16,12 @@
     <string name="login_hostname_hint">Hostname</string>
     <string name="login_hostname_error">Hostname can not be empty</string>
     <string name="login_port_hint">Port</string>
-    <string name="login_port_error">Port should be in the range 1-65535</string>
+    <string name="login_port_error">Port should be in the range 1&#8211;65535</string>
     <string name="login_button">Login</string>
 
     <!-- Connection status -->
     <string name="status_disconnected">Disconnected</string>
-    <string name="status_connecting">Connecting...</string>
+    <string name="status_connecting">Connecting&#8230;</string>
     <string name="status_connected">Connected</string>
 
     <!-- Tabs -->
