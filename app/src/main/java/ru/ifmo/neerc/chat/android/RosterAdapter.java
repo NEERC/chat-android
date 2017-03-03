@@ -71,9 +71,9 @@ public class RosterAdapter extends RecyclerView.Adapter<RosterAdapter.ViewHolder
 
         public void setUser(UserEntry user) {
             if (user.isPower())
-                iconView.setImageResource(R.drawable.ic_bulb);
+                iconView.setImageResource(R.drawable.ic_bulb_36dp);
             else
-                iconView.setImageResource(R.drawable.ic_chat);
+                iconView.setImageResource(R.drawable.ic_chat_36dp);
             iconView.setAlpha(user.isOnline() ? 1.0f : 0.3f);
             nameView.setText(user.getName());
         }
