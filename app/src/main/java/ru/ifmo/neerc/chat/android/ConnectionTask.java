@@ -31,6 +31,7 @@ import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smack.util.StringUtils;
 import org.jivesoftware.smack.util.TLSUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
@@ -63,7 +64,8 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
             .setUsernameAndPassword(username, password)
             .setServiceName(hostname)
             .setHost(server)
-            .setPort(port);
+            .setPort(port)
+            .setResource(StringUtils.randomString(10));
 
         try {
             TLSUtils.acceptAllCertificates(builder);
