@@ -125,7 +125,7 @@ public class RosterAdapter extends RecyclerView.Adapter<RosterAdapter.ViewHolder
 
     public void update() {
         groups.clear();
-        for (UserEntry user : UserRegistry.getInstance().getUsers()) {
+        for (UserEntry user : UserRegistry.getInstanceFor(ChatService.getInstance().getRoom()).getUsers()) {
             if (!groups.containsKey(user.getGroup()))
                 groups.put(user.getGroup(), new TreeSet<UserEntry>());
 

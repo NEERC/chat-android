@@ -138,7 +138,7 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
 
     public void update() {
         tasks.clear();
-        tasks.addAll(TaskRegistry.getInstance().getTasks());
+        tasks.addAll(TaskRegistry.getInstanceFor(ChatService.getInstance().getRoom()).getTasks());
         Set<String> usersSet = new TreeSet<String>();
         for (Task task : tasks) {
             usersSet.addAll(task.getStatuses().keySet());

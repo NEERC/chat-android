@@ -49,7 +49,7 @@ public class AssignTaskDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         taskId = getArguments().getString("taskId");
 
-        Task task = TaskRegistry.getInstance().getById(taskId);
+        Task task = TaskRegistry.getInstanceFor(ChatService.getInstance().getRoom()).getById(taskId);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
@@ -68,7 +68,7 @@ public class AssignTaskDialogFragment extends DialogFragment {
         usersAdapter = new RosterAdapter();
         usersAdapter.setSelectable(true);
 
-        UserRegistry userRegistry = UserRegistry.getInstance();
+        UserRegistry userRegistry = UserRegistry.getInstanceFor(ChatService.getInstance().getRoom());
         Set<UserEntry> users = new HashSet<UserEntry>();
         for (String userName : task.getStatuses().keySet()) {
             users.add(userRegistry.findOrRegister(userName));
@@ -104,7 +104,7 @@ public class AssignTaskDialogFragment extends DialogFragment {
     }
 
     private void assign() {
-        Task task = TaskRegistry.getInstance().getById(taskId);
+        Task task = TaskRegistry.getInstanceFor(ChatService.getInstance().getRoom()).getById(taskId);
         if (task == null)
             return;
 

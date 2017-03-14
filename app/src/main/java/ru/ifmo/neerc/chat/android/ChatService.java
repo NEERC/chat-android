@@ -96,12 +96,16 @@ public class ChatService extends Service {
 
     private NotificationManager notificationManager;
 
+    private String room;
     private boolean hasCredentials = false;
 
     private ConnectionTask connectionTask;
 
     private AbstractXMPPConnection connection;
     private MultiUserChat muc;
+
+    private TaskRegistry taskRegistry;
+    private UserRegistry userRegistry;
 
     private Set<ChatMessage> messages = Collections.synchronizedSortedSet(new TreeSet<ChatMessage>());
 
@@ -136,7 +140,7 @@ public class ChatService extends Service {
             );
 
             muc = MultiUserChatManager.getInstanceFor(connection)
-                .getMultiUserChat("neerc@conference." + connection.getServiceName());
+                .getMultiUserChat(room + "@conference." + connection.getServiceName());
             muc.addMessageListener(messageListener);
             muc.addParticipantStatusListener(participantStatusListener);
         }
@@ -155,7 +159,7 @@ public class ChatService extends Service {
             }
 
             TaskList tasksQuery = new TaskList();
-            tasksQuery.setTo("neerc." + connection.getServiceName());
+            tasksQuery.setTo(room + "@neerc." + connection.getServiceName());
 
             try {
                 connection.sendStanza(tasksQuery);
@@ -164,7 +168,7 @@ public class ChatService extends Service {
             }
 
             UserList usersQuery = new UserList();
-            usersQuery.setTo("neerc." + connection.getServiceName());
+            usersQuery.setTo(room + "@neerc." + connection.getServiceName());
 
             try {
                 connection.sendStanza(usersQuery);
@@ -203,7 +207,7 @@ public class ChatService extends Service {
     private final MessageListener messageListener = new MessageListener() {
         @Override
         public void processMessage(Message message) {
-            UserEntry user = UserRegistry.getInstance().findOrRegister(XmppStringUtils.parseResource(message.getFrom()));
+            UserEntry user = userRegistry.findOrRegister(XmppStringUtils.parseResource(message.getFrom()));
             Date time = new Date();
             DelayInformation delay = (DelayInformation) message.getExtension(DelayInformation.NAMESPACE);
             if (delay != null) {
@@ -230,14 +234,14 @@ public class ChatService extends Service {
         @Override
         public void joined(String participant) {
             Log.d(TAG, "User joined: " + participant);
-            UserRegistry.getInstance().putOnline(participant);
+            userRegistry.putOnline(participant);
             sendBroadcast(new Intent(ChatService.USER));
         }
 
         @Override
         public void left(String participant) {
             Log.d(TAG, "User left: " + participant);
-            UserRegistry.getInstance().putOffline(participant);
+            userRegistry.putOffline(participant);
             sendBroadcast(new Intent(ChatService.USER));
         }
     };
@@ -250,7 +254,7 @@ public class ChatService extends Service {
                 Log.d(TAG, "Received task list:");
                 for (Task task : taskList.getTasks()) {
                     Log.d(TAG, task.getTitle());
-                    TaskRegistry.getInstance().update(task);
+                    taskRegistry.update(task);
                 }
                 sendBroadcast(new Intent(ChatService.TASK));
             } else {
@@ -258,7 +262,7 @@ public class ChatService extends Service {
                 if (extension != null) {
                     Log.d(TAG, "Received task:");
                     Log.d(TAG, extension.getTask().getTitle());
-                    TaskRegistry.getInstance().update(extension.getTask());
+                    taskRegistry.update(extension.getTask());
                 }
                 sendBroadcast(new Intent(ChatService.TASK));
             }
@@ -273,7 +277,7 @@ public class ChatService extends Service {
                 Log.d(TAG, "Received user list:");
                 for (UserEntry user : userList.getUsers()) {
                     Log.d(TAG, user.toString());
-                    UserEntry u = UserRegistry.getInstance().findOrRegister(user.getName());
+                    UserEntry u = userRegistry.findOrRegister(user.getName());
                     u.setPower(user.isPower());
                     u.setGroup(user.getGroup());
                 }
@@ -303,7 +307,6 @@ public class ChatService extends Service {
     @Override
     public void onCreate() {
         Log.d(TAG, "Service created");
-
         instance = this;
 
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -313,8 +316,14 @@ public class ChatService extends Service {
         ProviderManager.addIQProvider(UserList.ELEMENT_NAME, UserList.NAMESPACE, new UserListProvider());
         ProviderManager.addExtensionProvider(TaskExtension.ELEMENT_NAME, TaskExtension.NAMESPACE, new TaskExtensionProvider());
 
+        SharedPreferences preferences = getSharedPreferences(CONNECTION, MODE_PRIVATE);
+        room = preferences.getString("room", "neerc");
+
+        taskRegistry = TaskRegistry.getInstanceFor(room);
+        userRegistry = UserRegistry.getInstanceFor(room);
+
         XMPPConnectionRegistry.addConnectionCreationListener(connectionCreationListener);
-        TaskRegistry.getInstance().addListener(taskRegistryListener);
+        taskRegistry.addListener(taskRegistryListener);
 
         connect();
     }
@@ -331,7 +340,7 @@ public class ChatService extends Service {
 
         disconnect();
 
-        TaskRegistry.getInstance().removeListener(taskRegistryListener);
+        taskRegistry.removeListener(taskRegistryListener);
         XMPPConnectionRegistry.removeConnectionCreationListener(connectionCreationListener);
 
         notificationManager.cancelAll();
@@ -431,8 +440,12 @@ public class ChatService extends Service {
         String user = getUser();
         if (user == null)
             return false;
-        UserEntry userEntry = UserRegistry.getInstance().findOrRegister(user);
+        UserEntry userEntry = userRegistry.findOrRegister(user);
         return userEntry.isPower();
+    }
+
+    public String getRoom() {
+        return room;
     }
 
     public Collection<ChatMessage> getMessages() {
@@ -453,7 +466,7 @@ public class ChatService extends Service {
     public void sendStatus(Task task, TaskStatus status) {
         TaskStatusIQ iq = new TaskStatusIQ(task, status);
         iq.setType(TaskStatusIQ.Type.set);
-        iq.setTo("neerc." + connection.getServiceName());
+        iq.setTo(room + "@neerc." + connection.getServiceName());
 
         Log.d(TAG, "Sending status:");
         Log.d(TAG, iq.toString());
@@ -468,7 +481,7 @@ public class ChatService extends Service {
     public void sendTask(Task task) {
         TaskIQ iq = new TaskIQ(task);
         iq.setType(TaskIQ.Type.set);
-        iq.setTo("neerc." + connection.getServiceName());
+        iq.setTo(room + "@neerc." + connection.getServiceName());
 
         Log.d(TAG, "Sending task:");
         Log.d(TAG, iq.toString());

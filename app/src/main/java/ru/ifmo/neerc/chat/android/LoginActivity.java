@@ -31,6 +31,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private TextInputLayout usernameWrapper;
     private TextInputLayout passwordWrapper;
+    private TextInputLayout roomWrapper;
     private TextInputLayout serverWrapper;
     private TextInputLayout hostnameWrapper;
     private TextInputLayout portWrapper;
@@ -42,6 +43,7 @@ public class LoginActivity extends AppCompatActivity {
 
         usernameWrapper = (TextInputLayout) findViewById(R.id.usernameWrapper);
         passwordWrapper = (TextInputLayout) findViewById(R.id.passwordWrapper);
+        roomWrapper = (TextInputLayout) findViewById(R.id.roomWrapper);
         serverWrapper = (TextInputLayout) findViewById(R.id.serverWrapper);
         hostnameWrapper = (TextInputLayout) findViewById(R.id.hostnameWrapper);
         portWrapper = (TextInputLayout) findViewById(R.id.portWrapper);
@@ -49,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
         final SharedPreferences preferences = getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE);
         usernameWrapper.getEditText().setText(preferences.getString("username", ""));
         passwordWrapper.getEditText().setText(preferences.getString("password", ""));
+        roomWrapper.getEditText().setText(preferences.getString("room", ""));
         serverWrapper.getEditText().setText(preferences.getString("server", ""));
         hostnameWrapper.getEditText().setText(preferences.getString("hostname", ""));
         portWrapper.getEditText().setText(String.valueOf(preferences.getInt("port", 5222)));
@@ -74,6 +77,7 @@ public class LoginActivity extends AppCompatActivity {
         preferences.edit()
             .putString("username", usernameWrapper.getEditText().getText().toString())
             .putString("password", passwordWrapper.getEditText().getText().toString())
+            .putString("room", roomWrapper.getEditText().getText().toString())
             .putString("server", serverWrapper.getEditText().getText().toString())
             .putString("hostname", hostnameWrapper.getEditText().getText().toString())
             .putInt("port", Integer.parseInt(portWrapper.getEditText().getText().toString()))
@@ -102,6 +106,14 @@ public class LoginActivity extends AppCompatActivity {
             return false;
         } else {
             passwordWrapper.setError(null);
+        }
+
+        String room = roomWrapper.getEditText().getText().toString();
+        if (room.isEmpty()) {
+            roomWrapper.setError(getResources().getText(R.string.login_room_error));
+            return false;
+        } else {
+            roomWrapper.setError(null);
         }
 
         String server = serverWrapper.getEditText().getText().toString();

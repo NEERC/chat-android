@@ -11,6 +11,8 @@
     <string name="login_username_error">Username can not be empty</string>
     <string name="login_password_hint">Password</string>
     <string name="login_password_error">Password can not be empty</string>
+    <string name="login_room_hint">Room</string>
+    <string name="login_room_error">Room can not be empty</string>
     <string name="login_server_hint">Server</string>
     <string name="login_server_error">Server can not be empty</string>
     <string name="login_hostname_hint">Hostname</string>
