@@ -119,6 +119,29 @@ public class ChatService extends Service {
         return instance;
     }
 
+    private final ConnectionCreationListener connectionCreationListener = new ConnectionCreationListener() {
+        @Override
+        public void connectionCreated(XMPPConnection connection) {
+            ChatService.this.connection = (AbstractXMPPConnection) connection;
+
+            connection.addConnectionListener(connectionListener);
+            connection.addAsyncStanzaListener(taskListener,
+                new OrFilter(
+                    new StanzaTypeFilter(TaskList.class),
+                    new StanzaExtensionFilter(new TaskExtension())
+                )
+            );
+            connection.addAsyncStanzaListener(userListener,
+                new StanzaTypeFilter(UserList.class)
+            );
+
+            muc = MultiUserChatManager.getInstanceFor(connection)
+                .getMultiUserChat("neerc@conference." + connection.getServiceName());
+            muc.addMessageListener(messageListener);
+            muc.addParticipantStatusListener(participantStatusListener);
+        }
+    };
+
     private final ConnectionListener connectionListener = new AbstractConnectionListener() {
         @Override
         public void authenticated(XMPPConnection connection, boolean resumed) {
@@ -290,29 +313,7 @@ public class ChatService extends Service {
         ProviderManager.addIQProvider(UserList.ELEMENT_NAME, UserList.NAMESPACE, new UserListProvider());
         ProviderManager.addExtensionProvider(TaskExtension.ELEMENT_NAME, TaskExtension.NAMESPACE, new TaskExtensionProvider());
 
-        XMPPConnectionRegistry.addConnectionCreationListener(new ConnectionCreationListener() {
-            @Override
-            public void connectionCreated(XMPPConnection connection) {
-                ChatService.this.connection = (AbstractXMPPConnection) connection;
-
-                connection.addConnectionListener(connectionListener);
-                connection.addAsyncStanzaListener(taskListener,
-                    new OrFilter(
-                        new StanzaTypeFilter(TaskList.class),
-                        new StanzaExtensionFilter(new TaskExtension())
-                    )
-                );
-                connection.addAsyncStanzaListener(userListener,
-                    new StanzaTypeFilter(UserList.class)
-                );
-
-                muc = MultiUserChatManager.getInstanceFor(connection)
-                    .getMultiUserChat("neerc@conference." + connection.getServiceName());
-                muc.addMessageListener(messageListener);
-                muc.addParticipantStatusListener(participantStatusListener);
-            }
-        });
-
+        XMPPConnectionRegistry.addConnectionCreationListener(connectionCreationListener);
         TaskRegistry.getInstance().addListener(taskRegistryListener);
 
         connect();
@@ -327,7 +328,15 @@ public class ChatService extends Service {
     @Override
     public void onDestroy() {
         Log.d(TAG, "Service destroyed");
-        notificationManager.cancel(NOTIFICATION);
+
+        disconnect();
+
+        TaskRegistry.getInstance().removeListener(taskRegistryListener);
+        XMPPConnectionRegistry.removeConnectionCreationListener(connectionCreationListener);
+
+        notificationManager.cancelAll();
+
+        instance = null;
     }
 
     @Override

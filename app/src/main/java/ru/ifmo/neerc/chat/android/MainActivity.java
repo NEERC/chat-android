@@ -61,22 +61,29 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName className, IBinder service) {
             ChatService.LocalBinder binder = (ChatService.LocalBinder) service;
             chatService = binder.getService();
-
-            if (!chatService.hasCredentials()) {
-                Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivityForResult(loginIntent, LOGIN_REQUEST);
-            }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName className) {
             chatService = null;
+
+            Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(loginIntent);
+            finish();
         }
     };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (ChatService.getInstance() == null) {
+            Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(loginIntent);
+            finish();
+            return;
+        }
+
         setContentView(R.layout.main);
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
@@ -117,8 +124,7 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
 
-        startService(new Intent(this, ChatService.class));
-        bindService(new Intent(this, ChatService.class), connection, BIND_AUTO_CREATE);
+        bindService(new Intent(this, ChatService.class), connection, 0);
     }
 
     public class ChatPagerAdapter extends FragmentPagerAdapter {
@@ -224,17 +230,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unbindService(connection);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == LOGIN_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                chatService.connect();
-            } else {
-                exit();
-            }
+        if (chatService != null) {
+            unbindService(connection);
         }
     }
 
@@ -249,26 +246,14 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.logout:
-                if (chatService != null)
-                    chatService.disconnect();
-                getSharedPreferences(ChatService.USER, MODE_PRIVATE)
+                getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE)
                     .edit()
-                    .clear()
-                    .commit();
-                Intent loginIntent = new Intent(this, LoginActivity.class);
-                startActivityForResult(loginIntent, LOGIN_REQUEST);
-                return true;
-            case R.id.exit:
-                exit();
+                    .putBoolean("login", false)
+                    .apply();
+                stopService(new Intent(this, ChatService.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    private void exit() {
-        stopService(new Intent(this, ChatService.class));
-        finish();
-        System.exit(0);
     }
 }

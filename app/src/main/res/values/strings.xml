@@ -31,7 +31,6 @@
 
     <!-- Menu -->
     <string name="menu_logout">Logout</string>
-    <string name="menu_exit">Exit</string>
 
     <!-- Chat -->
     <string name="chat_send">Send</string>

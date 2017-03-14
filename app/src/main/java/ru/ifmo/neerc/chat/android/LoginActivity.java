@@ -50,33 +50,40 @@ public class LoginActivity extends AppCompatActivity {
         usernameWrapper.getEditText().setText(preferences.getString("username", ""));
         passwordWrapper.getEditText().setText(preferences.getString("password", ""));
         serverWrapper.getEditText().setText(preferences.getString("server", ""));
-        hostnameWrapper.getEditText().setText(preferences.getString("hostname", "10.0.0.1"));
+        hostnameWrapper.getEditText().setText(preferences.getString("hostname", ""));
         portWrapper.getEditText().setText(String.valueOf(preferences.getInt("port", 5222)));
 
         Button login = (Button)findViewById(R.id.login);
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!validate())
-                    return;
-
-                preferences.edit()
-                    .putString("username", usernameWrapper.getEditText().getText().toString())
-                    .putString("password", passwordWrapper.getEditText().getText().toString())
-                    .putString("server", serverWrapper.getEditText().getText().toString())
-                    .putString("hostname", hostnameWrapper.getEditText().getText().toString())
-                    .putInt("port", Integer.parseInt(portWrapper.getEditText().getText().toString()))
-                    .apply();
-                
-                setResult(RESULT_OK);
-                finish();
+                login();
             }
         });
+
+        if (preferences.getBoolean("login", false)) {
+            login();
+        }
     }
 
-    @Override
-    public void onBackPressed() {
-        setResult(RESULT_CANCELED);
+    private void login() {
+        if (!validate())
+            return;
+
+        final SharedPreferences preferences = getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE);
+        preferences.edit()
+            .putString("username", usernameWrapper.getEditText().getText().toString())
+            .putString("password", passwordWrapper.getEditText().getText().toString())
+            .putString("server", serverWrapper.getEditText().getText().toString())
+            .putString("hostname", hostnameWrapper.getEditText().getText().toString())
+            .putInt("port", Integer.parseInt(portWrapper.getEditText().getText().toString()))
+            .putBoolean("login", true)
+            .apply();
+
+        startService(new Intent(LoginActivity.this, ChatService.class));
+
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
         finish();
     }
 
