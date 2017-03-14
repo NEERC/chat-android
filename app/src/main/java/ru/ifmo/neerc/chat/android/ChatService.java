@@ -207,7 +207,12 @@ public class ChatService extends Service {
     private final MessageListener messageListener = new MessageListener() {
         @Override
         public void processMessage(Message message) {
-            UserEntry user = userRegistry.findOrRegister(XmppStringUtils.parseResource(message.getFrom()));
+            String resource = XmppStringUtils.parseResource(message.getFrom());
+            if (resource.isEmpty()) {
+                return;
+            }
+
+            UserEntry user = userRegistry.findOrRegister(resource);
             Date time = new Date();
             DelayInformation delay = (DelayInformation) message.getExtension(DelayInformation.NAMESPACE);
             if (delay != null) {
