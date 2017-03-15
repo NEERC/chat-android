@@ -53,8 +53,7 @@ public class ChatFragment extends Fragment {
         chatList = (RecyclerView) getActivity().findViewById(R.id.chat_list);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
-        //layoutManager.setStackFromEnd(true);
-        //layoutManager.setReverseLayout(true);
+        layoutManager.setStackFromEnd(true);
         chatList.setLayoutManager(layoutManager);
 
         adapter = new ChatAdapter();
