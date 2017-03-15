@@ -50,12 +50,6 @@ public class TaskStatusesAdapter extends RecyclerView.Adapter<TaskStatusesAdapte
             super(view);
             userView = (TextView) view.findViewById(R.id.user);
             statusView = (ImageView) view.findViewById(R.id.status);
-            statusView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Log.d("TaskStatusesAdapter", "Clicked on " + view);
-                }
-            });
             messageView = (TextView) view.findViewById(R.id.message);
         }
 

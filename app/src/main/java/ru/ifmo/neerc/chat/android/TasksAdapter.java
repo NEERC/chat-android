@@ -74,12 +74,6 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
             expandView = (ImageView) view.findViewById(R.id.expand);
 
             statusList = (RecyclerView) view.findViewById(R.id.status_list);
-            statusList.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Log.d("TasksAdapter", "Clicked on " + view);
-                }
-            });
 
             LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
             statusList.setLayoutManager(layoutManager);

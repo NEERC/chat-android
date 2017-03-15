@@ -38,4 +38,9 @@ public class DisabledRecyclerView extends RecyclerView {
     public boolean onInterceptTouchEvent(MotionEvent event) {
         return true;
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return false;
+    }
 }
