@@ -33,7 +33,6 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputLayout passwordWrapper;
     private TextInputLayout roomWrapper;
     private TextInputLayout serverWrapper;
-    private TextInputLayout hostnameWrapper;
     private TextInputLayout portWrapper;
 
     @Override
@@ -45,7 +44,6 @@ public class LoginActivity extends AppCompatActivity {
         passwordWrapper = (TextInputLayout) findViewById(R.id.passwordWrapper);
         roomWrapper = (TextInputLayout) findViewById(R.id.roomWrapper);
         serverWrapper = (TextInputLayout) findViewById(R.id.serverWrapper);
-        hostnameWrapper = (TextInputLayout) findViewById(R.id.hostnameWrapper);
         portWrapper = (TextInputLayout) findViewById(R.id.portWrapper);
 
         final SharedPreferences preferences = getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE);
@@ -53,7 +51,6 @@ public class LoginActivity extends AppCompatActivity {
         passwordWrapper.getEditText().setText(preferences.getString("password", ""));
         roomWrapper.getEditText().setText(preferences.getString("room", ""));
         serverWrapper.getEditText().setText(preferences.getString("server", ""));
-        hostnameWrapper.getEditText().setText(preferences.getString("hostname", ""));
         portWrapper.getEditText().setText(String.valueOf(preferences.getInt("port", 5222)));
 
         Button login = (Button)findViewById(R.id.login);
@@ -79,7 +76,6 @@ public class LoginActivity extends AppCompatActivity {
             .putString("password", passwordWrapper.getEditText().getText().toString())
             .putString("room", roomWrapper.getEditText().getText().toString())
             .putString("server", serverWrapper.getEditText().getText().toString())
-            .putString("hostname", hostnameWrapper.getEditText().getText().toString())
             .putInt("port", Integer.parseInt(portWrapper.getEditText().getText().toString()))
             .putBoolean("login", true)
             .apply();
@@ -122,14 +118,6 @@ public class LoginActivity extends AppCompatActivity {
             return false;
         } else {
             serverWrapper.setError(null);
-        }
-
-        String hostname = hostnameWrapper.getEditText().getText().toString();
-        if (hostname.isEmpty()) {
-            hostnameWrapper.setError(getResources().getText(R.string.login_hostname_error));
-            return false;
-        } else {
-            hostnameWrapper.setError(null);
         }
 
         String port = portWrapper.getEditText().getText().toString();

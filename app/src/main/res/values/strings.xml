@@ -15,8 +15,6 @@
     <string name="login_room_error">Room can not be empty</string>
     <string name="login_server_hint">Server</string>
     <string name="login_server_error">Server can not be empty</string>
-    <string name="login_hostname_hint">Hostname</string>
-    <string name="login_hostname_error">Hostname can not be empty</string>
     <string name="login_port_hint">Port</string>
     <string name="login_port_error">Port should be in the range 1&#8211;65535</string>
     <string name="login_button">Login</string>

@@ -138,17 +138,19 @@ public class ChatService extends Service {
             connection.addAsyncStanzaListener(userListener,
                 new StanzaTypeFilter(UserList.class)
             );
-
-            muc = MultiUserChatManager.getInstanceFor(connection)
-                .getMultiUserChat(room + "@conference." + connection.getServiceName());
-            muc.addMessageListener(messageListener);
-            muc.addParticipantStatusListener(participantStatusListener);
         }
     };
 
     private final ConnectionListener connectionListener = new AbstractConnectionListener() {
         @Override
         public void authenticated(XMPPConnection connection, boolean resumed) {
+            if (muc == null) {
+                muc = MultiUserChatManager.getInstanceFor(connection)
+                    .getMultiUserChat(room + "@conference." + connection.getServiceName());
+                muc.addMessageListener(messageListener);
+                muc.addParticipantStatusListener(participantStatusListener);
+            }
+
             String username = connection.getUser();
             username = username.substring(0, username.indexOf('@'));
 
@@ -405,20 +407,18 @@ public class ChatService extends Service {
         String username = preferences.getString("username", null);
         String password = preferences.getString("password", null);
         String server = preferences.getString("server", null);
-        String hostname = preferences.getString("hostname", null);
         int port = preferences.getInt("port", 5222);
 
         if (username == null ||
             password == null ||
-            server == null ||
-            hostname == null) {
+            server == null) {
             hasCredentials = false;
             return;
         }
 
         hasCredentials = true;
 
-        connectionTask = new ConnectionTask(this, username, password, server, hostname, port);
+        connectionTask = new ConnectionTask(this, username, password, server, port);
         connectionTask.execute();
     }
 
