@@ -56,6 +56,9 @@
     <string name="assign_task_assign">Assign</string>
 
     <!-- Notifications -->
-    <string name="notification_new_task">New Task</string>
+    <plurals name="notification_new_tasks_count">
+        <item quantity="one">%d new task</item>
+        <item quantity="other">%d new tasks</item>
+    </plurals>
 
 </resources>

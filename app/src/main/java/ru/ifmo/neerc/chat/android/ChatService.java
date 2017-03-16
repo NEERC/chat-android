@@ -298,12 +298,16 @@ public class ChatService extends Service {
 
         @Override
         public void taskChanged(Task task) {
+            boolean alert = false;
+
             TaskStatus status = task.getStatus(getUser());
             if (status != null && TaskActions.STATUS_NEW.equals(status.getType()) &&
                 !notifiedTasks.contains(task.getId())) {
-                showTaskNotification(task);
+                alert = true;
                 notifiedTasks.add(task.getId());
             }
+
+            updateNotification(alert);
         }
 
         @Override
@@ -317,7 +321,7 @@ public class ChatService extends Service {
         instance = this;
 
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        showNotification();
+        updateNotification(false);
 
         ProviderManager.addIQProvider(TaskList.ELEMENT_NAME, TaskList.NAMESPACE, new TaskListProvider());
         ProviderManager.addIQProvider(UserList.ELEMENT_NAME, UserList.NAMESPACE, new UserListProvider());
@@ -360,25 +364,24 @@ public class ChatService extends Service {
         return binder;
     }
 
-    private void showNotification() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setAction(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    public int getNewTasksCount() {
+        int count = 0;
 
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        if (taskRegistry == null)
+            return count;
 
-        Notification notification = new NotificationCompat.Builder(this)
-            .setSmallIcon(R.drawable.ic_chat_24dp)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentIntent(contentIntent)
-            .setOngoing(true)
-            .build();
+        for (Task task : taskRegistry.getTasks()) {
+            TaskStatus status = task.getStatus(getUser());
+            if (status != null && TaskActions.STATUS_NEW.equals(status.getType()))
+                count++;
+        }
 
-        notificationManager.notify(NOTIFICATION, notification);
+        return count;
     }
 
-    private void showTaskNotification(Task task) {
+    private void updateNotification(boolean alert) {
+        int newTasks = getNewTasksCount();
+
         Intent intent = new Intent(this, MainActivity.class);
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -387,15 +390,22 @@ public class ChatService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-            .setSmallIcon(R.drawable.ic_bulb_24dp)
-            .setContentTitle(getResources().getText(R.string.notification_new_task))
-            .setContentText(task.getTitle())
+            .setSmallIcon(R.drawable.ic_chat_24dp)
+            .setContentTitle(getString(R.string.app_name))
             .setContentIntent(contentIntent)
-            .setAutoCancel(true)
-            .setVibrate(new long[] {0, 1000});
+            .setOngoing(true);
 
-        Notification notification = builder.build();
-        notificationManager.notify(notificationId++, notification);
+        if (newTasks > 0) {
+            builder.setSmallIcon(R.drawable.ic_bulb_24dp);
+            builder.setContentText(getResources().getQuantityString(R.plurals.notification_new_tasks_count, newTasks, newTasks));
+        }
+
+        if (alert) {
+            builder.setVibrate(new long[] {0, 1000});
+            builder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        }
+
+        notificationManager.notify(NOTIFICATION, builder.build());
     }
 
     public boolean hasCredentials() {
