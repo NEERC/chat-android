@@ -215,6 +215,8 @@ public class MainActivity extends AppCompatActivity {
         String username = preferences.getString("username", "");
         getSupportActionBar().setTitle(username);
 
+        pagerAdapter.notifyDataSetChanged();
+
         statusReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
