@@ -144,6 +144,24 @@ public class ChatService extends Service {
     private final ConnectionListener connectionListener = new AbstractConnectionListener() {
         @Override
         public void authenticated(XMPPConnection connection, boolean resumed) {
+            UserList usersQuery = new UserList();
+            usersQuery.setTo(room + "@neerc." + connection.getServiceName());
+
+            try {
+                connection.sendStanza(usersQuery);
+            } catch (SmackException.NotConnectedException e) {
+                Log.e(TAG, "Failed to query users", e);
+            }
+
+            TaskList tasksQuery = new TaskList();
+            tasksQuery.setTo(room + "@neerc." + connection.getServiceName());
+
+            try {
+                connection.sendStanza(tasksQuery);
+            } catch (SmackException.NotConnectedException e) {
+                Log.e(TAG, "Failed to query tasks", e);
+            }
+
             if (muc == null) {
                 muc = MultiUserChatManager.getInstanceFor(connection)
                     .getMultiUserChat(room + "@conference." + connection.getServiceName());
@@ -158,24 +176,6 @@ public class ChatService extends Service {
                 muc.join(username);
             } catch (SmackException | XMPPException e) {
                 Log.e(TAG, "Failed to join the room", e);
-            }
-
-            TaskList tasksQuery = new TaskList();
-            tasksQuery.setTo(room + "@neerc." + connection.getServiceName());
-
-            try {
-                connection.sendStanza(tasksQuery);
-            } catch (SmackException.NotConnectedException e) {
-                Log.e(TAG, "Failed to query tasks", e);
-            }
-
-            UserList usersQuery = new UserList();
-            usersQuery.setTo(room + "@neerc." + connection.getServiceName());
-
-            try {
-                connection.sendStanza(usersQuery);
-            } catch (SmackException.NotConnectedException e) {
-                Log.e(TAG, "Failed to query users", e);
             }
         }
 
