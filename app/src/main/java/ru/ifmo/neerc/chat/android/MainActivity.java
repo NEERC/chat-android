@@ -39,6 +39,8 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -53,8 +55,11 @@ public class MainActivity extends AppCompatActivity {
     static final int LOGIN_REQUEST = 1;
 
     private BroadcastReceiver statusReceiver;
+    private BroadcastReceiver taskReceiver;
 
     private ChatService chatService;
+
+    private ChatPagerAdapter pagerAdapter;
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -101,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
 
-        final ChatPagerAdapter pagerAdapter = new ChatPagerAdapter(getSupportFragmentManager());
+        pagerAdapter = new ChatPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(pagerAdapter);
         viewPager.setCurrentItem(ChatPagerAdapter.FRAGMENT_CHAT);
         viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
@@ -163,11 +168,22 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case FRAGMENT_ROSTER:
-                    return getResources().getText(R.string.tab_roster);
+                    return getResources().getText(R.string.tab_roster).toString().toUpperCase();
                 case FRAGMENT_CHAT:
-                    return getResources().getText(R.string.tab_chat);
+                    return getResources().getText(R.string.tab_chat).toString().toUpperCase();
                 case FRAGMENT_TASKS:
-                    return getResources().getText(R.string.tab_tasks);
+                    SpannableStringBuilder sb = new SpannableStringBuilder();
+                    sb.append(getResources().getText(R.string.tab_tasks).toString().toUpperCase());
+                    int newTasksCount = ChatService.getInstance().getNewTasksCount();
+                    if (newTasksCount > 0) {
+                        sb.append(" ");
+                        RoundedBackgroundSpan span = new RoundedBackgroundSpan(
+                            getResources().getColor(R.color.badgeBackgroundColor),
+                            getResources().getColor(R.color.badgeTextColor)
+                        );
+                        sb.append(Integer.toString(newTasksCount), span, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    }
+                    return sb;
                 default:
                     return null;
             }
@@ -217,7 +233,15 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        taskReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                pagerAdapter.notifyDataSetChanged();
+            }
+        };
+
         registerReceiver(statusReceiver, new IntentFilter(ChatService.STATUS));
+        registerReceiver(taskReceiver, new IntentFilter(ChatService.TASK));
     }
 
     @Override
@@ -225,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
 
         unregisterReceiver(statusReceiver);
+        unregisterReceiver(taskReceiver);
     }
 
     @Override

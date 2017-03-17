@@ -447,7 +447,8 @@ public class ChatService extends Service {
         if (connection == null)
             return null;
         String username = connection.getUser();
-        username = username.substring(0, username.indexOf('@'));
+        if (username != null)
+            username = username.substring(0, username.indexOf('@'));
         return username;
     }
 
