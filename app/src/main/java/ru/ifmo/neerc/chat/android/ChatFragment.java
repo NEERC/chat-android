@@ -35,10 +35,12 @@ import ru.ifmo.neerc.chat.ChatMessage;
 public class ChatFragment extends Fragment {
 
     private RecyclerView chatList;
+    private RecyclerView priorityChatList;
     private EditText messageInput;
     private Button sendButton;
 
     private ChatAdapter adapter;
+    private ChatAdapter priorityAdapter;
     private BroadcastReceiver messageReceiver;
 
     @Override
@@ -58,6 +60,15 @@ public class ChatFragment extends Fragment {
 
         adapter = new ChatAdapter();
         chatList.setAdapter(adapter);
+
+        priorityChatList = (RecyclerView) getActivity().findViewById(R.id.priority_chat_list);
+
+        LinearLayoutManager priorityLayoutManager = new LinearLayoutManager(getActivity());
+        priorityLayoutManager.setStackFromEnd(true);
+        priorityChatList.setLayoutManager(priorityLayoutManager);
+
+        priorityAdapter = new ChatAdapter(true);
+        priorityChatList.setAdapter(priorityAdapter);
 
         messageInput = (EditText) getActivity().findViewById(R.id.message_input);
         sendButton = (Button) getActivity().findViewById(R.id.send_button);
@@ -100,6 +111,8 @@ public class ChatFragment extends Fragment {
 
     public void updateMessages(ChatMessage message) {
         adapter.update(message);
+        priorityAdapter.update(message);
         chatList.scrollToPosition(adapter.getItemCount() - 1);
+        priorityChatList.scrollToPosition(priorityAdapter.getItemCount() - 1);
     }
 }

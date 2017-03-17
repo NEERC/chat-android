@@ -36,6 +36,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     private static final DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss", Locale.US);
 
     private final List<ChatMessage> messages = new ArrayList<ChatMessage>();
+    private final boolean priorityOnly;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView timeView;
@@ -49,6 +50,14 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
             usernameView = (TextView) view.findViewById(R.id.username);
             messageView = (TextView) view.findViewById(R.id.message);
         }
+    }
+
+    public ChatAdapter() {
+        this(false);
+    }
+
+    public ChatAdapter(boolean priorityOnly) {
+        this.priorityOnly = priorityOnly;
     }
 
     @Override
@@ -96,15 +105,27 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
         return messages.size();
     }
 
+    protected boolean appendMessage(ChatMessage message) {
+        if (priorityOnly && (!message.getUser().isPower() || message.getPriority() == 0)) {
+            return false;
+        }
+
+        messages.add(message);
+        return true;
+    }
+
     public void update(ChatMessage message) {
         if (message != null) {
-            messages.add(message);
-            notifyItemInserted(messages.size() - 1);
+            if (appendMessage(message)) {
+                notifyItemInserted(messages.size() - 1);
+            }
         } else {
             messages.clear();
             Collection<ChatMessage> source = ChatService.getInstance().getMessages();
             synchronized (source) {
-                messages.addAll(source);
+                for (ChatMessage msg : source) {
+                    appendMessage(msg);
+                }
             }
             notifyDataSetChanged();
         }
