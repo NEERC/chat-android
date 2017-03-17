@@ -181,7 +181,9 @@ public class MainActivity extends AppCompatActivity {
                             getResources().getColor(R.color.badgeBackgroundColor),
                             getResources().getColor(R.color.badgeTextColor)
                         );
-                        sb.append(Integer.toString(newTasksCount), span, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        int start = sb.length();
+                        sb.append(Integer.toString(newTasksCount));
+                        sb.setSpan(span, start, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                     }
                     return sb;
                 default:
