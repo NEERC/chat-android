@@ -152,7 +152,8 @@ public class TasksFragment extends Fragment {
         String user = ChatService.getInstance().getUser();
 
         if (task == null || user == null) {
-            actionMode.finish();
+            if (actionMode != null)
+                actionMode.finish();
             return;
         }
 
