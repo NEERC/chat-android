@@ -36,6 +36,8 @@ import org.jivesoftware.smack.util.TLSUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 
+import org.jxmpp.util.XmppStringUtils;
+
 public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
 
     private static final String TAG = "ConnectionTask";
@@ -59,7 +61,7 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
     @Override
     protected Boolean doInBackground(Void... params) {
         XMPPTCPConnectionConfiguration.Builder builder = XMPPTCPConnectionConfiguration.builder()
-            .setUsernameAndPassword(username, password)
+            .setUsernameAndPassword(XmppStringUtils.escapeLocalpart(username), password)
             .setServiceName(server)
             .setHost(server)
             .setPort(port)
