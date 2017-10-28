@@ -1,0 +1,15 @@
+language: android
+
+jdk: openjdk8
+
+android:
+    components:
+        - tools
+        - platform-tools
+        - tools
+
+        - build-tools-24.0.3
+        - android-24
+
+        - extra-android-m2repository
+        - extra-google-m2repository
