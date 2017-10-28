@@ -1,9 +1,5 @@
 apply plugin: 'com.android.application'
 
-def keystorePropertiesFile = rootProject.file('keystore.properties')
-def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-
 android {
     compileSdkVersion 24
     buildToolsVersion "24.0.3"
@@ -13,7 +9,7 @@ android {
 
         minSdkVersion 14
 
-        versionCode 8
+        versionCode 9
         versionName "0.3.2"
     }
 
@@ -28,17 +24,22 @@ android {
     }
 
     signingConfigs {
-        release {
-            storeFile rootProject.file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-        }
-    }
+        productFlavors.each { flavor ->
+            def keystorePropertiesFile = rootProject.file("${flavor.name}.properties")
 
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
+            if (keystorePropertiesFile.exists()) {
+                def keystoreProperties = new Properties()
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+                "${flavor.name}" {
+                    storeFile rootProject.file(keystoreProperties['storeFile'])
+                    storePassword keystoreProperties['storePassword']
+                    keyAlias keystoreProperties['keyAlias']
+                    keyPassword keystoreProperties['keyPassword']
+                }
+
+                flavor.signingConfig = signingConfigs[flavor.name]
+            }
         }
     }
 }
