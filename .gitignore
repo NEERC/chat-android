@@ -2,6 +2,7 @@
 build
 
 *.keystore
-keystore.properties
+!neerc.keystore
+*.properties
 
 *.swp

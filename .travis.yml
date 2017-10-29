@@ -3,13 +3,17 @@ language: android
 jdk: openjdk8
 
 android:
-    components:
-        - tools
-        - platform-tools
-        - tools
+  components:
+    - tools
+    - platform-tools
+    - tools
 
-        - build-tools-24.0.3
-        - android-24
+    - build-tools-24.0.3
+    - android-24
 
-        - extra-android-m2repository
-        - extra-google-m2repository
+    - extra-android-m2repository
+    - extra-google-m2repository
+
+before_install:
+  - openssl aes-256-cbc -K $encrypted_a9b8bf4fc451_key -iv $encrypted_a9b8bf4fc451_iv
+    -in neerc.properties.enc -out neerc.properties -d
