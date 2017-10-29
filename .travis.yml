@@ -17,3 +17,12 @@ android:
 before_install:
   - openssl aes-256-cbc -K $encrypted_a9b8bf4fc451_key -iv $encrypted_a9b8bf4fc451_iv
     -in neerc.properties.enc -out neerc.properties -d
+
+deploy:
+  provider: releases
+  api_key:
+    secure: DHyyg4miXUH9cI7yFccC24Yxjp7CWDKKnVTxa4LufBgy2iUFIvem6Fbtj1eTPx3vXdPJxUzMZZ6vbUx1Mi6CphdijsL4VQlLfQVgOHqFBkK6sbRj1mVWGgnvMPOKvFVcsImirTVOWhEQvlg37TTSwc2r1gYqMaOMivK8sTm61mQ64F3OUuM9pyKVlBzMDSrTK3lWZ2Txm2SiGCYYLU8OyLCZVUrzXKuyqi7ojRLUBg2vECi+8n8lNCUuxNHjDgFP2hHj1GxSctER9xchjtw0DH8erk9mxZBH0fcq6e6RMxdjW6jLWE/oJRDfi8nFkBPAoXxBIFQ2rfYcW0QrJOsZTwxC5bESCaUZVpZYdResstsaLZ0TRA7zWvH9Uo53lpV4tyZ00ll8zeITekIb4rn/Q1UuCMv+IdBS7A64xKyWChz0PTOGCwlFQMt2PrlegVmKZA8DwCDoInXE8GDlURuGO8lwJbdHD4w+RsfPEqBwpHo3Q9ZmMhuqu6pQuIhcEIwt3W9JCj7tL7hD4GrzKrWoj4ZCac649X1AHQO8d1S40cPvoVBwjMSPmJke3+0RGsT8aZGiQan3dDWXVxDN3mAmfXAkNUIa9CMz8E079AEXMEtY9DlkvA84wi0/kHe6fYi5JUkJJVh4CVvlsI56qikJdMyY1MOjdA72ZC8Uj+YWjzM=
+  file: app/build/outputs/apk/app-neerc-release.apk
+  skip_cleanup: true
+  on:
+    tags: true
