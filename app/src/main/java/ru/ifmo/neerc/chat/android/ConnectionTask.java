@@ -16,13 +16,18 @@
 
 package ru.ifmo.neerc.chat.android;
 
+import java.io.InputStream;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.KeyManagementException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -68,10 +73,25 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
             .setResource(StringUtils.randomString(10));
 
         try {
-            TLSUtils.acceptAllCertificates(builder);
-            TLSUtils.disableHostnameVerificationForTlsCertificicates(builder);
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            Log.e(TAG, "Failed to configure connection", e);
+            final char[] PASSWORD = "neercchat".toCharArray();
+
+            AssetManager assetManager = context.getAssets();
+            InputStream keystoreInputStream = assetManager.open("chat.bks");
+
+            KeyStore keyStore = KeyStore.getInstance("BKS");
+            keyStore.load(keystoreInputStream, PASSWORD);
+
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            keyManagerFactory.init(keyStore, PASSWORD);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
+
+            builder.setCustomSSLContext(sslContext);
+
+            Log.d(TAG, "Client certificate loaded");
+        } catch (IOException | GeneralSecurityException e) {
+            Log.e(TAG, "Failed to load client certificate", e);
         }
 
         AbstractXMPPConnection conn = new XMPPTCPConnection(builder.build());
