@@ -19,9 +19,10 @@ package ru.ifmo.neerc.chat.android;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.HashSet;
 
 import android.app.Service;
 import android.app.Notification;
@@ -109,9 +110,9 @@ public class ChatService extends Service {
 
     private Set<ChatMessage> messages = Collections.synchronizedSortedSet(new TreeSet<ChatMessage>());
 
-    private static final int NOTIFICATION = 1;
+    private static final int NOTIFICATION_TASKS = 1;
 
-    private int notificationId = NOTIFICATION + 1;
+    private int notificationId = NOTIFICATION_TASKS + 1;
 
     public class LocalBinder extends Binder {
         ChatService getService() {
@@ -307,7 +308,7 @@ public class ChatService extends Service {
                 notifiedTasks.add(task.getId());
             }
 
-            updateNotification(alert);
+            updateTasksNotification(alert);
         }
 
         @Override
@@ -321,7 +322,6 @@ public class ChatService extends Service {
         instance = this;
 
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        updateNotification(false);
 
         ProviderManager.addIQProvider(TaskList.ELEMENT_NAME, TaskList.NAMESPACE, new TaskListProvider());
         ProviderManager.addIQProvider(UserList.ELEMENT_NAME, UserList.NAMESPACE, new UserListProvider());
@@ -364,48 +364,57 @@ public class ChatService extends Service {
         return binder;
     }
 
-    public int getNewTasksCount() {
-        int count = 0;
+    public Set<Task> getNewTasks() {
+        Set<Task> tasks = new TreeSet<>();
 
         if (taskRegistry == null)
-            return count;
+            return tasks;
 
         for (Task task : taskRegistry.getTasks()) {
             TaskStatus status = task.getStatus(getUser());
             if (status != null && TaskActions.STATUS_NEW.equals(status.getType()))
-                count++;
+                tasks.add(task);
         }
 
-        return count;
+        return tasks;
     }
 
-    private void updateNotification(boolean alert) {
-        int newTasks = getNewTasksCount();
+    private void updateTasksNotification(boolean alert) {
+        Set<Task> tasks = getNewTasks();
+        if (tasks.isEmpty()) {
+            notificationManager.cancel(NOTIFICATION_TASKS);
+            return;
+        }
 
         Intent intent = new Intent(this, MainActivity.class);
-        intent.setAction(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-            .setSmallIcon(R.drawable.ic_chat_24dp)
-            .setContentTitle(getString(R.string.app_name))
+            .setContentTitle(getResources().getQuantityString(R.plurals.notification_new_tasks_count, tasks.size(), tasks.size()))
+            .setSmallIcon(R.drawable.ic_bulb_24dp)
             .setContentIntent(contentIntent)
             .setOngoing(true);
 
-        if (newTasks > 0) {
-            builder.setSmallIcon(R.drawable.ic_bulb_24dp);
-            builder.setContentText(getResources().getQuantityString(R.plurals.notification_new_tasks_count, newTasks, newTasks));
+        NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
+
+        Iterator<Task> it = tasks.iterator();
+        for (int i = 0; it.hasNext() && i < 5; i++) {
+            style.addLine(it.next().getTitle());
         }
+
+        if (tasks.size() > 5) {
+            style.setSummaryText(getString(R.string.notification_new_tasks_more, tasks.size() - 5));
+        }
+
+        builder.setStyle(style);
 
         if (alert) {
             builder.setVibrate(new long[] {0, 1000});
             builder.setPriority(NotificationCompat.PRIORITY_HIGH);
         }
 
-        notificationManager.notify(NOTIFICATION, builder.build());
+        notificationManager.notify(NOTIFICATION_TASKS, builder.build());
     }
 
     public boolean hasCredentials() {

@@ -60,5 +60,6 @@
         <item quantity="one">%d new task</item>
         <item quantity="other">%d new tasks</item>
     </plurals>
+    <string name="notification_new_tasks_more">+%d more</string>
 
 </resources>

@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
                 case FRAGMENT_TASKS:
                     SpannableStringBuilder sb = new SpannableStringBuilder();
                     sb.append(getResources().getText(R.string.tab_tasks).toString().toUpperCase());
-                    int newTasksCount = ChatService.getInstance().getNewTasksCount();
+                    int newTasksCount = ChatService.getInstance().getNewTasks().size();
                     if (newTasksCount > 0) {
                         sb.append(" ");
                         RoundedBackgroundSpan span = new RoundedBackgroundSpan(
