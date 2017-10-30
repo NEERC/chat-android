@@ -178,10 +178,7 @@ public class ChatService extends Service {
             } catch (SmackException | XMPPException e) {
                 Log.e(TAG, "Failed to join the room", e);
             }
-        }
 
-        @Override
-        public void connected(XMPPConnection connection) {
             sendBroadcast(new Intent(ChatService.STATUS)
                 .putExtra("status", ChatService.STATUS_CONNECTED));
         }
@@ -198,12 +195,6 @@ public class ChatService extends Service {
                 sendBroadcast(new Intent(ChatService.STATUS)
                     .putExtra("status", ChatService.STATUS_CONNECTING));
             }
-        }
-
-        @Override
-        public void reconnectionSuccessful() {
-            sendBroadcast(new Intent(ChatService.STATUS)
-                .putExtra("status", ChatService.STATUS_CONNECTED));
         }
     };
 

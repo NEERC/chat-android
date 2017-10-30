@@ -209,19 +209,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    protected void updateTitle() {
+        SharedPreferences preferences = getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE);
+        String title = preferences.getString("username", "");
+
+        if (ChatService.getInstance() != null) {
+            String username = ChatService.getInstance().getUser();
+            if (username != null && !username.equals(title)) {
+                title = username + " (" + title + ")";
+            }
+        }
+
+        getSupportActionBar().setTitle(title);
+    }
+
     @Override
     public void onStart() {
         super.onStart();
 
-        SharedPreferences preferences = getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE);
-        String username = preferences.getString("username", "");
-        getSupportActionBar().setTitle(username);
+        updateTitle();
 
         pagerAdapter.notifyDataSetChanged();
 
         statusReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                updateTitle();
+
                 int status = intent.getIntExtra("status", 0);
                 switch (status) {
                     case ChatService.STATUS_DISCONNECTED:
