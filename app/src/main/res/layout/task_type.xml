@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ImageView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/type_icon"
-    android:layout_width="48dp"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
     android:layout_height="48dp"
-    android:scaleType="center"
-    android:tintMode="src_in"
-    android:tint="#ddd"
-    android:background="?android:attr/activatedBackgroundIndicator"/>
+    android:background="?android:attr/activatedBackgroundIndicator">
+
+    <ImageView
+        android:id="@+id/type_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
+        android:paddingLeft="16dp"
+        android:tintMode="src_in"
+        android:tint="#ddd"/>
+
+    <TextView
+        android:id="@+id/type_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_gravity="center_vertical"
+        android:paddingLeft="32dp"
+        android:paddingRight="16dp"
+        android:textSize="16sp"/>
+
+</LinearLayout>

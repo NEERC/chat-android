@@ -51,6 +51,15 @@
     <string name="create_task_title_error">Task title can not be empty</string>
     <string name="create_task_create">Create</string>
 
+    <!-- Task types -->
+    <string-array name="task_types">
+        <item>TODO</item>
+        <item>TODO/Fail</item>
+        <item>Confirm</item>
+        <item>OK/Fail</item>
+        <item>Question</item>
+    </string-array>
+
     <!-- Task assign dialog -->
     <string name="assign_task_title">Assign task</string>
     <string name="assign_task_assign">Assign</string>

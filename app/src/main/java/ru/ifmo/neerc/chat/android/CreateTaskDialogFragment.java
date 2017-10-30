@@ -29,6 +29,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import ru.ifmo.neerc.task.TaskActions;
 import ru.ifmo.neerc.task.Task;
@@ -49,6 +50,7 @@ public class CreateTaskDialogFragment extends DialogFragment {
 
         public class ViewHolder extends RecyclerView.ViewHolder {
             private ImageView iconView;
+            private TextView nameView;
 
             public ViewHolder(View view) {
                 super(view);
@@ -66,10 +68,12 @@ public class CreateTaskDialogFragment extends DialogFragment {
                 });
 
                 iconView = (ImageView) view.findViewById(R.id.type_icon);
+                nameView = (TextView) view.findViewById(R.id.type_name);
             }
 
-            public void setType(String type) {
-                iconView.setImageResource(getResourceForType(type));
+            public void setType(int type) {
+                iconView.setImageResource(getResourceForType(TYPES[type]));
+                nameView.setText(nameView.getResources().getStringArray(R.array.task_types)[type]);
             }
 
             public void setSelected(boolean selected) {
@@ -103,7 +107,7 @@ public class CreateTaskDialogFragment extends DialogFragment {
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            holder.setType(TYPES[position]);
+            holder.setType(position);
             holder.setSelected(position == selectedPosition);
         }
 
@@ -130,7 +134,7 @@ public class CreateTaskDialogFragment extends DialogFragment {
 
         RecyclerView typeList = (RecyclerView) view.findViewById(R.id.type_list);
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
         typeList.setLayoutManager(layoutManager);
 
         final TypeAdapter adapter = new TypeAdapter();
