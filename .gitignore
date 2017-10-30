@@ -4,5 +4,6 @@ build
 *.keystore
 !neerc.keystore
 *.properties
+*.bks
 
 *.swp
