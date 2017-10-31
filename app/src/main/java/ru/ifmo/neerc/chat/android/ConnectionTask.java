@@ -23,6 +23,7 @@ import java.security.KeyStore;
 import java.security.SecureRandom;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -84,8 +85,14 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             keyManagerFactory.init(keyStore, PASSWORD);
 
+            TrustManager[] tm = null;
+            if (BuildConfig.DEBUG) {
+                tm = new TrustManager[] { new TLSUtils.AcceptAllTrustManager() };
+                TLSUtils.disableHostnameVerificationForTlsCertificicates(builder);
+            }
+
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
+            sslContext.init(keyManagerFactory.getKeyManagers(), tm, new SecureRandom());
 
             builder.setCustomSSLContext(sslContext);
 
