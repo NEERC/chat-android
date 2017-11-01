@@ -71,7 +71,7 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
             .setServiceName(server)
             .setHost(server)
             .setPort(port)
-            .setResource(StringUtils.randomString(10));
+            .setResource(username + "_" + StringUtils.randomString(10));
 
         if (!BuildConfig.DEBUG) {
             builder.setSecurityMode(XMPPTCPConnectionConfiguration.SecurityMode.required);
