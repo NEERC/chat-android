@@ -73,6 +73,10 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
             .setPort(port)
             .setResource(StringUtils.randomString(10));
 
+        if (!BuildConfig.DEBUG) {
+            builder.setSecurityMode(XMPPTCPConnectionConfiguration.SecurityMode.required);
+        }
+
         try {
             final char[] PASSWORD = "neercchat".toCharArray();
 
