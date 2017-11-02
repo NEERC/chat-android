@@ -103,6 +103,13 @@ public class ChatFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        ChatService.getInstance().clearImportantMessages();
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
 

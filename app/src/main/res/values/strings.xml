@@ -65,10 +65,14 @@
     <string name="assign_task_assign">Assign</string>
 
     <!-- Notifications -->
-    <plurals name="notification_new_tasks_count">
+    <plurals name="notification_tasks_count">
         <item quantity="one">%d new task</item>
         <item quantity="other">%d new tasks</item>
     </plurals>
-    <string name="notification_new_tasks_more">+%d more</string>
+    <plurals name="notification_messages_count">
+        <item quantity="one">%d important message</item>
+        <item quantity="other">%d important messages</item>
+    </plurals>
+    <string name="notification_more">+%d more</string>
 
 </resources>

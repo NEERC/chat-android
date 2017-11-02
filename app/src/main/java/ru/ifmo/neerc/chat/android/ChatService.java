@@ -16,11 +16,14 @@
 
 package ru.ifmo.neerc.chat.android;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -30,9 +33,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.text.Spanned;
+import android.text.SpannableStringBuilder;
+import android.text.style.StyleSpan;
 import android.util.Log;
 
 import org.jivesoftware.smack.AbstractConnectionListener;
@@ -91,6 +98,8 @@ public class ChatService extends Service {
     public static final int STATUS_CONNECTING = 1;
     public static final int STATUS_CONNECTED = 2;
 
+    private static final DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss", Locale.US);
+
     private static ChatService instance;
 
     private final IBinder binder = new LocalBinder();
@@ -109,10 +118,10 @@ public class ChatService extends Service {
     private UserRegistry userRegistry;
 
     private Set<ChatMessage> messages = Collections.synchronizedSortedSet(new TreeSet<ChatMessage>());
+    private Set<ChatMessage> importantMessages = Collections.synchronizedSortedSet(new TreeSet<ChatMessage>(Collections.reverseOrder()));
 
     private static final int NOTIFICATION_TASKS = 1;
-
-    private int notificationId = NOTIFICATION_TASKS + 1;
+    private static final int NOTIFICATION_MESSAGES = 2;
 
     public class LocalBinder extends Binder {
         ChatService getService() {
@@ -224,6 +233,12 @@ public class ChatService extends Service {
             synchronized (messages) {
                 messages.add(chatMessage);
             }
+
+            UserEntry currentUser = userRegistry.findOrRegister(getUser());
+            if (chatMessage.isImportantFor(currentUser)) {
+                addImportantMessage(chatMessage);
+            }
+
             sendBroadcast(new Intent(ChatService.MESSAGE)
                 .putExtra("message", chatMessage));
         }
@@ -382,7 +397,7 @@ public class ChatService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-            .setContentTitle(getResources().getQuantityString(R.plurals.notification_new_tasks_count, tasks.size(), tasks.size()))
+            .setContentTitle(getResources().getQuantityString(R.plurals.notification_tasks_count, tasks.size(), tasks.size()))
             .setSmallIcon(R.drawable.ic_bulb_24dp)
             .setContentIntent(contentIntent)
             .setOngoing(true);
@@ -395,7 +410,7 @@ public class ChatService extends Service {
         }
 
         if (tasks.size() > 5) {
-            style.setSummaryText(getString(R.string.notification_new_tasks_more, tasks.size() - 5));
+            style.setSummaryText(getString(R.string.notification_more, tasks.size() - 5));
         }
 
         builder.setStyle(style);
@@ -406,6 +421,69 @@ public class ChatService extends Service {
         }
 
         notificationManager.notify(NOTIFICATION_TASKS, builder.build());
+    }
+
+    private void updateMessagesNotification() {
+        if (importantMessages.isEmpty()) {
+            notificationManager.cancel(NOTIFICATION_MESSAGES);
+            return;
+        }
+
+        Intent intent = new Intent(this, MainActivity.class);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+            .setContentTitle(getResources().getQuantityString(R.plurals.notification_messages_count, importantMessages.size(), importantMessages.size()))
+            .setSmallIcon(R.drawable.ic_chat_24dp)
+            .setContentIntent(contentIntent)
+            .setVibrate(new long[] {0, 1000})
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setNumber(importantMessages.size());
+
+        NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
+
+        Iterator<ChatMessage> it = importantMessages.iterator();
+        for (int i = 0; it.hasNext() && i < 5; i++) {
+            ChatMessage message = it.next();
+
+            SpannableStringBuilder sb = new SpannableStringBuilder();
+            sb.append(TIME_FORMAT.format(message.getDate()) + " ");
+            int start = sb.length();
+            sb.append(message.getUser().getName());
+            StyleSpan span = new StyleSpan(Typeface.BOLD);
+            sb.setSpan(span, start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            sb.append(" " + message.getText());
+
+            style.addLine(sb);
+        }
+
+        if (importantMessages.size() > 5) {
+            style.setSummaryText(getString(R.string.notification_more, importantMessages.size() - 5));
+        }
+
+        builder.setStyle(style);
+
+        notificationManager.notify(NOTIFICATION_MESSAGES, builder.build());
+    }
+
+    private void addImportantMessage(ChatMessage message) {
+        synchronized (importantMessages) {
+            importantMessages.add(message);
+            updateMessagesNotification();
+        }
+    }
+
+    public void clearImportantMessages() {
+        synchronized (importantMessages) {
+            importantMessages.clear();
+            updateMessagesNotification();
+        }
+    }
+
+    private void showMessageNotification(ChatMessage message) {
+        Intent intent = new Intent(this, MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
     }
 
     public boolean hasCredentials() {
