@@ -49,8 +49,8 @@ public class LoginActivity extends AppCompatActivity {
         final SharedPreferences preferences = getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE);
         usernameWrapper.getEditText().setText(preferences.getString("username", ""));
         passwordWrapper.getEditText().setText(preferences.getString("password", ""));
-        roomWrapper.getEditText().setText(preferences.getString("room", ""));
-        serverWrapper.getEditText().setText(preferences.getString("server", ""));
+        roomWrapper.getEditText().setText(preferences.getString("room", "neerc"));
+        serverWrapper.getEditText().setText(preferences.getString("server", "neerc.ifmo.ru"));
         portWrapper.getEditText().setText(String.valueOf(preferences.getInt("port", 5222)));
 
         Button login = (Button)findViewById(R.id.login);
