@@ -400,6 +400,7 @@ public class ChatService extends Service {
             .setContentTitle(getResources().getQuantityString(R.plurals.notification_tasks_count, tasks.size(), tasks.size()))
             .setSmallIcon(R.drawable.ic_bulb_24dp)
             .setContentIntent(contentIntent)
+            .setNumber(tasks.size())
             .setOngoing(true);
 
         NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
