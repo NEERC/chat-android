@@ -61,6 +61,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPConnectionRegistry;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.delay.packet.DelayInformation;
+import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 
@@ -99,6 +100,7 @@ public class ChatService extends Service {
     public static final int STATUS_CONNECTED = 2;
 
     private static final DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss", Locale.US);
+    private static final int DAY_IN_SECONDS = 24 * 60 * 60;
 
     private static ChatService instance;
 
@@ -119,6 +121,8 @@ public class ChatService extends Service {
 
     private Set<ChatMessage> messages = Collections.synchronizedSortedSet(new TreeSet<ChatMessage>());
     private Set<ChatMessage> importantMessages = Collections.synchronizedSortedSet(new TreeSet<ChatMessage>(Collections.reverseOrder()));
+
+    private Date lastMessageDate = null;
 
     private static final int NOTIFICATION_TASKS = 1;
     private static final int NOTIFICATION_MESSAGES = 2;
@@ -183,7 +187,13 @@ public class ChatService extends Service {
             username = username.substring(0, username.indexOf('@'));
 
             try {
-                muc.join(username);
+                DiscussionHistory history = new DiscussionHistory();
+                if (lastMessageDate != null) {
+                    history.setSince(new Date(lastMessageDate.getTime() + 1));
+                } else {
+                    history.setSeconds(DAY_IN_SECONDS);
+                }
+                muc.join(username, "", history, connection.getPacketReplyTimeout());
             } catch (SmackException | XMPPException e) {
                 Log.e(TAG, "Failed to join the room", e);
             }
@@ -241,6 +251,8 @@ public class ChatService extends Service {
 
             sendBroadcast(new Intent(ChatService.MESSAGE)
                 .putExtra("message", chatMessage));
+
+            lastMessageDate = time;
         }
     };
 
