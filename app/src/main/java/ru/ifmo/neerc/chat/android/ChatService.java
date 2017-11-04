@@ -51,7 +51,9 @@ import org.jivesoftware.smack.filter.StanzaTypeFilter;
 import org.jivesoftware.smack.filter.StanzaExtensionFilter;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Stanza;
+import org.jivesoftware.smack.PresenceListener;
 import org.jivesoftware.smack.provider.ProviderManager;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.StanzaListener;
@@ -59,10 +61,8 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPConnectionRegistry;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.delay.packet.DelayInformation;
-import org.jivesoftware.smackx.muc.DefaultParticipantStatusListener;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
-import org.jivesoftware.smackx.muc.ParticipantStatusListener;
 
 import org.jxmpp.util.XmppStringUtils;
 
@@ -176,7 +176,7 @@ public class ChatService extends Service {
                 muc = MultiUserChatManager.getInstanceFor(connection)
                     .getMultiUserChat(room + "@conference." + connection.getServiceName());
                 muc.addMessageListener(messageListener);
-                muc.addParticipantStatusListener(participantStatusListener);
+                muc.addParticipantListener(presenceListener);
             }
 
             String username = connection.getUser();
@@ -244,19 +244,22 @@ public class ChatService extends Service {
         }
     };
 
-    private final ParticipantStatusListener participantStatusListener = new DefaultParticipantStatusListener() {
+    private final PresenceListener presenceListener = new PresenceListener() {
         @Override
-        public void joined(String participant) {
-            Log.d(TAG, "User joined: " + participant);
-            userRegistry.putOnline(participant);
-            sendBroadcast(new Intent(ChatService.USER));
-        }
+        public void processPresence(Presence presence) {
+            String username = XmppStringUtils.parseResource(presence.getFrom());
+            if (username == null)
+                return;
 
-        @Override
-        public void left(String participant) {
-            Log.d(TAG, "User left: " + participant);
-            userRegistry.putOffline(participant);
-            sendBroadcast(new Intent(ChatService.USER));
+            if (presence.isAvailable()) {
+                Log.d(TAG, "User joined: " + username);
+                userRegistry.putOnline(username);
+                sendBroadcast(new Intent(ChatService.USER));
+            } else {
+                Log.d(TAG, "User left: " + username);
+                userRegistry.putOffline(username);
+                sendBroadcast(new Intent(ChatService.USER));
+            }
         }
     };
 
