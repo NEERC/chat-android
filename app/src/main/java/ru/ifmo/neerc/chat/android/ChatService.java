@@ -97,6 +97,8 @@ public class ChatService extends Service {
     public static final String TASK = "ru.ifmo.neerc.chat.android.TASK";
     public static final String USER = "ru.ifmo.neerc.chat.android.USER";
 
+    public static final String EXTRA_TASK_ID = "ru.ifmo.neerc.chat.android.extra.TASK_ID";
+
     public static final int STATUS_DISCONNECTED = 0;
     public static final int STATUS_CONNECTING = 1;
     public static final int STATUS_CONNECTED = 2;
@@ -405,8 +407,12 @@ public class ChatService extends Service {
         }
 
         Intent intent = new Intent(this, MainActivity.class);
+        intent.setAction(MainActivity.ACTION_TASKS);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        PendingIntent contentIntent = PendingIntent.getActivity(this,
+                                                                NOTIFICATION_TASKS,
+                                                                intent,
+                                                                PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
             .setContentTitle(getResources().getQuantityString(R.plurals.notification_tasks_count, tasks.size(), tasks.size()))
@@ -426,8 +432,13 @@ public class ChatService extends Service {
         if (status != null && TaskActions.STATUS_NEW.equals(status.getType())) {
             if (!taskNotificationMap.containsKey(task.getId())) {
                 Intent intent = new Intent(this, MainActivity.class);
+                intent.setAction(MainActivity.ACTION_TASKS);
+                intent.putExtra(EXTRA_TASK_ID, task.getId());
 
-                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
+                PendingIntent contentIntent = PendingIntent.getActivity(this,
+                                                                        notificationId,
+                                                                        intent,
+                                                                        PendingIntent.FLAG_UPDATE_CURRENT);
 
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                     .setContentTitle(task.getTitle())
@@ -456,6 +467,7 @@ public class ChatService extends Service {
         }
 
         Intent intent = new Intent(this, MainActivity.class);
+        intent.setAction(MainActivity.ACTION_CHAT);
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
 

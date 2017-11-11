@@ -210,12 +210,7 @@ public class TasksFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 int position = taskList.getChildAdapterPosition(view);
-                adapter.setSelectedTask(position);
-
-                if (actionMode == null)
-                    actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(actionModeCallback);
-                else
-                    actionMode.invalidate();
+                setSelectedTask(position);
             }
         });
         taskList.setAdapter(adapter);
@@ -253,5 +248,22 @@ public class TasksFragment extends Fragment {
     public void onTabUnselected() {
         if (actionMode != null)
             actionMode.finish();
+    }
+
+    private void startActionMode() {
+        if (actionMode == null)
+            actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(actionModeCallback);
+        else
+            actionMode.invalidate();
+    }
+
+    public void setSelectedTask(int position) {
+        adapter.setSelectedTask(position);
+        startActionMode();
+    }
+
+    public void setSelectedTask(String taskId) {
+        adapter.setSelectedTask(taskId);
+        startActionMode();
     }
 }

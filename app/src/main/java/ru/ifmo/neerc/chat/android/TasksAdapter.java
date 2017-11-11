@@ -18,6 +18,7 @@ package ru.ifmo.neerc.chat.android;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ import ru.ifmo.neerc.task.TaskStatus;
 public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> {
 
     private final List<Task> tasks = new ArrayList<Task>();
+    private final Map<String, Integer> taskPositions = new HashMap<>();
     private final List<String> users = new ArrayList<String>();
     private final Set<Task> expandedTasks = new HashSet<Task>();
 
@@ -132,9 +134,12 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
 
     public void update() {
         tasks.clear();
+        taskPositions.clear();
         tasks.addAll(TaskRegistry.getInstanceFor(ChatService.getInstance().getRoom()).getTasks());
         Set<String> usersSet = new TreeSet<String>();
-        for (Task task : tasks) {
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            taskPositions.put(task.getId(), i);
             usersSet.addAll(task.getStatuses().keySet());
         }
         users.clear();
@@ -149,6 +154,15 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
         selectedPosition = position;
         if (position >= 0)
             notifyItemChanged(position);
+    }
+
+    public void setSelectedTask(String taskId) {
+        Integer position = taskPositions.get(taskId);
+        if (position != null) {
+            setSelectedTask(position);
+        } else {
+            setSelectedTask(-1);
+        }
     }
 
     public Task getSelectedTask() {

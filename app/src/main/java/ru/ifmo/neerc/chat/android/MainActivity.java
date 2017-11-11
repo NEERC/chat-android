@@ -52,6 +52,10 @@ import android.util.Log;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+
+    public static final String ACTION_CHAT = "ru.ifmo.neerc.chat.android.action.CHAT";
+    public static final String ACTION_TASKS = "ru.ifmo.neerc.chat.android.action.TASKS";
+
     static final int LOGIN_REQUEST = 1;
 
     private BroadcastReceiver statusReceiver;
@@ -59,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ChatService chatService;
 
+    private ViewPager viewPager;
     private ChatPagerAdapter pagerAdapter;
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -104,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+        viewPager = (ViewPager) findViewById(R.id.viewpager);
 
         pagerAdapter = new ChatPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(pagerAdapter);
@@ -260,6 +265,25 @@ public class MainActivity extends AppCompatActivity {
 
         registerReceiver(statusReceiver, new IntentFilter(ChatService.STATUS));
         registerReceiver(taskReceiver, new IntentFilter(ChatService.TASK));
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        switch (intent.getAction()) {
+            case ACTION_CHAT:
+                viewPager.setCurrentItem(ChatPagerAdapter.FRAGMENT_CHAT);
+                break;
+            case ACTION_TASKS:
+                viewPager.setCurrentItem(ChatPagerAdapter.FRAGMENT_TASKS);
+                String taskId = intent.getStringExtra(ChatService.EXTRA_TASK_ID);
+                Fragment fragment = pagerAdapter.getFragment(ChatPagerAdapter.FRAGMENT_TASKS);
+                if (fragment instanceof TasksFragment) {
+                    ((TasksFragment) fragment).setSelectedTask(taskId);
+                }
+                break;
+        }
     }
 
     @Override
