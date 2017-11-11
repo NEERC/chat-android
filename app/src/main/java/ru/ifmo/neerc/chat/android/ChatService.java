@@ -21,9 +21,11 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -119,6 +121,8 @@ public class ChatService extends Service {
     private TaskRegistry taskRegistry;
     private UserRegistry userRegistry;
 
+    private Map<String, Integer> taskNotificationMap = new HashMap<>();
+
     private Set<ChatMessage> messages = Collections.synchronizedSortedSet(new TreeSet<ChatMessage>());
     private Set<ChatMessage> importantMessages = Collections.synchronizedSortedSet(new TreeSet<ChatMessage>(Collections.reverseOrder()));
 
@@ -126,6 +130,10 @@ public class ChatService extends Service {
 
     private static final int NOTIFICATION_TASKS = 1;
     private static final int NOTIFICATION_MESSAGES = 2;
+
+    private int notificationId = NOTIFICATION_MESSAGES + 1;
+
+    private static final String GROUP_TASKS = "tasks";
 
     public class LocalBinder extends Binder {
         ChatService getService() {
@@ -316,20 +324,9 @@ public class ChatService extends Service {
     };
 
     private final TaskRegistryListener taskRegistryListener = new TaskRegistryListener() {
-        private Set<String> notifiedTasks = new HashSet<String>();
-
         @Override
         public void taskChanged(Task task) {
-            boolean alert = false;
-
-            TaskStatus status = task.getStatus(getUser());
-            if (status != null && TaskActions.STATUS_NEW.equals(status.getType()) &&
-                !notifiedTasks.contains(task.getId())) {
-                alert = true;
-                notifiedTasks.add(task.getId());
-            }
-
-            updateTasksNotification(alert);
+            updateTaskNotification(task);
         }
 
         @Override
@@ -400,7 +397,7 @@ public class ChatService extends Service {
         return tasks;
     }
 
-    private void updateTasksNotification(boolean alert) {
+    private void updateTaskNotificationSummary() {
         Set<Task> tasks = getNewTasks();
         if (tasks.isEmpty()) {
             notificationManager.cancel(NOTIFICATION_TASKS);
@@ -416,27 +413,40 @@ public class ChatService extends Service {
             .setSmallIcon(R.drawable.ic_bulb_24dp)
             .setContentIntent(contentIntent)
             .setNumber(tasks.size())
-            .setOngoing(true);
-
-        NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
-
-        Iterator<Task> it = tasks.iterator();
-        for (int i = 0; it.hasNext() && i < 5; i++) {
-            style.addLine(it.next().getTitle());
-        }
-
-        if (tasks.size() > 5) {
-            style.setSummaryText(getString(R.string.notification_more, tasks.size() - 5));
-        }
-
-        builder.setStyle(style);
-
-        if (alert) {
-            builder.setVibrate(new long[] {0, 1000});
-            builder.setPriority(NotificationCompat.PRIORITY_HIGH);
-        }
+            .setGroup(GROUP_TASKS)
+            .setGroupSummary(true);
 
         notificationManager.notify(NOTIFICATION_TASKS, builder.build());
+    }
+
+    private void updateTaskNotification(Task task) {
+        updateTaskNotificationSummary();
+
+        TaskStatus status = task.getStatus(getUser());
+        if (status != null && TaskActions.STATUS_NEW.equals(status.getType())) {
+            if (!taskNotificationMap.containsKey(task.getId())) {
+                Intent intent = new Intent(this, MainActivity.class);
+
+                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                    .setContentTitle(task.getTitle())
+                    .setSmallIcon(R.drawable.ic_bulb_24dp)
+                    .setContentIntent(contentIntent)
+                    .setGroup(GROUP_TASKS)
+                    .setVibrate(new long[] {0, 1000})
+                    .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+                notificationManager.notify(notificationId, builder.build());
+
+                taskNotificationMap.put(task.getId(), notificationId++);
+            }
+        } else {
+            Integer id = taskNotificationMap.get(task.getId());
+            if (id != null) {
+                notificationManager.cancel(id);
+            }
+        }
     }
 
     private void updateMessagesNotification() {
