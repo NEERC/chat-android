@@ -75,4 +75,10 @@
     </plurals>
     <string name="notification_more">+%d more</string>
 
+    <string-array name="notification_task_actions">
+        <item>START</item>
+        <item>COMPLETE</item>
+        <item>FAIL</item>
+    </string-array>
+
 </resources>

@@ -33,8 +33,12 @@ import android.app.Service;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.os.Binder;
 import android.os.IBinder;
@@ -96,8 +100,10 @@ public class ChatService extends Service {
     public static final String MESSAGE = "ru.ifmo.neerc.chat.android.MESSAGE";
     public static final String TASK = "ru.ifmo.neerc.chat.android.TASK";
     public static final String USER = "ru.ifmo.neerc.chat.android.USER";
+    public static final String TASK_ACTION = "ru.ifmo.neerc.chat.android.TASK_ACTION";
 
     public static final String EXTRA_TASK_ID = "ru.ifmo.neerc.chat.android.extra.TASK_ID";
+    public static final String EXTRA_ACTION = "ru.ifmo.neerc.chat.android.extra.ACTION";
 
     public static final int STATUS_DISCONNECTED = 0;
     public static final int STATUS_CONNECTING = 1;
@@ -336,6 +342,23 @@ public class ChatService extends Service {
         }
     };
 
+    private final BroadcastReceiver taskActionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String taskId = intent.getStringExtra(EXTRA_TASK_ID);
+            Task task = taskRegistry.getById(taskId);
+            String user = getUser();
+            int action = intent.getIntExtra(EXTRA_ACTION, -1);
+
+            if (!TaskActions.isActionSupported(task, user, action)) {
+                return;
+            }
+
+            String type = TaskActions.getNewStatus(task, user, action);
+            sendStatus(task, new TaskStatus(type, ""));
+        }
+    };
+
     @Override
     public void onCreate() {
         Log.d(TAG, "Service created");
@@ -356,6 +379,8 @@ public class ChatService extends Service {
         XMPPConnectionRegistry.addConnectionCreationListener(connectionCreationListener);
         taskRegistry.addListener(taskRegistryListener);
 
+        registerReceiver(taskActionReceiver, new IntentFilter(TASK_ACTION));
+
         connect();
     }
 
@@ -370,6 +395,8 @@ public class ChatService extends Service {
         Log.d(TAG, "Service destroyed");
 
         disconnect();
+
+        unregisterReceiver(taskActionReceiver);
 
         taskRegistry.removeListener(taskRegistryListener);
         XMPPConnectionRegistry.removeConnectionCreationListener(connectionCreationListener);
@@ -435,10 +462,12 @@ public class ChatService extends Service {
                 intent.setAction(MainActivity.ACTION_TASKS);
                 intent.putExtra(EXTRA_TASK_ID, task.getId());
 
-                PendingIntent contentIntent = PendingIntent.getActivity(this,
-                                                                        notificationId,
-                                                                        intent,
-                                                                        PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent contentIntent = PendingIntent.getActivity(
+                    this,
+                    notificationId,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT
+                );
 
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                     .setContentTitle(task.getTitle())
@@ -447,6 +476,10 @@ public class ChatService extends Service {
                     .setGroup(GROUP_TASKS)
                     .setVibrate(new long[] {0, 1000})
                     .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+                addTaskAction(builder, task, TaskActions.ACTION_START);
+                addTaskAction(builder, task, TaskActions.ACTION_DONE);
+                addTaskAction(builder, task, TaskActions.ACTION_FAIL);
 
                 notificationManager.notify(notificationId, builder.build());
 
@@ -458,6 +491,43 @@ public class ChatService extends Service {
                 notificationManager.cancel(id);
             }
         }
+    }
+
+    private void addTaskAction(NotificationCompat.Builder builder, Task task, int action) {
+        if (!TaskActions.isActionSupported(task, getUser(), action))
+            return;
+
+        PendingIntent pendingIntent;
+
+        if (action == TaskActions.ACTION_FAIL || task.getType().equals(TaskActions.TYPE_QUESTION)) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setAction(MainActivity.ACTION_TASKS);
+            intent.putExtra(EXTRA_TASK_ID, task.getId());
+            intent.putExtra(EXTRA_ACTION, action);
+
+            pendingIntent = PendingIntent.getActivity(
+                this,
+                notificationId * 3 + action,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+            );
+        } else {
+            Intent intent = new Intent(ChatService.TASK_ACTION);
+            intent.putExtra(EXTRA_TASK_ID, task.getId());
+            intent.putExtra(EXTRA_ACTION, action);
+
+            pendingIntent = PendingIntent.getBroadcast(
+                this,
+                notificationId * 3 + action,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+            );
+        }
+
+        Resources res = getResources();
+        int icon = res.obtainTypedArray(R.array.notification_task_action_icons).getResourceId(action, 0);
+        String title = res.getStringArray(R.array.notification_task_actions)[action];
+        builder.addAction(icon, title, pendingIntent);
     }
 
     private void updateMessagesNotification() {
