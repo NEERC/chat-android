@@ -63,11 +63,6 @@ public class TasksFragment extends Fragment {
             Task task = adapter.getSelectedTask();
             String user = ChatService.getInstance().getUser();
 
-            if (task == null || user == null) {
-                mode.finish();
-                return true;
-            }
-            
             menu.findItem(R.id.started)
                 .setVisible(TaskActions.isActionSupported(task, user, TaskActions.ACTION_START));
             menu.findItem(R.id.done)
@@ -152,8 +147,7 @@ public class TasksFragment extends Fragment {
         String user = ChatService.getInstance().getUser();
 
         if (task == null || user == null) {
-            if (actionMode != null)
-                actionMode.finish();
+            finishActionMode();
             return;
         }
 
@@ -162,7 +156,7 @@ public class TasksFragment extends Fragment {
 
         String type = TaskActions.getNewStatus(task, user, action);
         ChatService.getInstance().sendStatus(task, new TaskStatus(type, value));
-        actionMode.finish();
+        finishActionMode();
     }
 
     public void assignTask() {
@@ -187,7 +181,7 @@ public class TasksFragment extends Fragment {
             ChatService.getInstance().sendTask(remove);
         }
 
-        actionMode.finish();
+        finishActionMode();
     }
 
     @Override
@@ -240,30 +234,39 @@ public class TasksFragment extends Fragment {
     }
 
     public void updateTasks() {
-        if (actionMode != null)
-            actionMode.finish();
+        finishActionMode();
         adapter.update();
     }
 
     public void onTabUnselected() {
+        finishActionMode();
+    }
+
+    private void finishActionMode() {
         if (actionMode != null)
             actionMode.finish();
     }
 
-    private void startActionMode() {
-        if (actionMode == null)
+    private void updateActionMode() {
+        if (adapter.getSelectedTask() == null || ChatService.getInstance().getUser() == null) {
+            finishActionMode();
+            return;
+        }
+
+        if (actionMode == null) {
             actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(actionModeCallback);
-        else
+        } else {
             actionMode.invalidate();
+        }
     }
 
     public void setSelectedTask(int position) {
         adapter.setSelectedTask(position);
-        startActionMode();
+        updateActionMode();
     }
 
     public void setSelectedTask(String taskId) {
         adapter.setSelectedTask(taskId);
-        startActionMode();
+        updateActionMode();
     }
 }
