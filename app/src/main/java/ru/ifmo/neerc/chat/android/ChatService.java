@@ -41,6 +41,7 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.text.Spanned;
@@ -445,6 +446,10 @@ public class ChatService extends Service {
     }
 
     private void updateTaskNotificationSummary() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return;
+        }
+
         Set<Task> tasks = getNewTasks();
         if (tasks.isEmpty()) {
             notificationManager.cancel(NOTIFICATION_TASKS);
@@ -488,7 +493,8 @@ public class ChatService extends Service {
                 );
 
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                    .setContentTitle(task.getTitle())
+                    .setContentTitle(getString(R.string.notification_task_title))
+                    .setContentText(task.getTitle())
                     .setSmallIcon(R.drawable.ic_bulb_24dp)
                     .setContentIntent(contentIntent)
                     .setGroup(GROUP_TASKS)
