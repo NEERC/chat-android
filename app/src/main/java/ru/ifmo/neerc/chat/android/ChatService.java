@@ -67,10 +67,15 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPConnectionRegistry;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.delay.packet.DelayInformation;
-import org.jivesoftware.smackx.muc.DiscussionHistory;
+import org.jivesoftware.smackx.muc.MucEnterConfiguration;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 
+import org.jxmpp.jid.EntityBareJid;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.jid.parts.Localpart;
+import org.jxmpp.jid.parts.Resourcepart;
+import org.jxmpp.stringprep.XmppStringprepException;
 import org.jxmpp.util.XmppStringUtils;
 
 import ru.ifmo.neerc.task.Task;
@@ -179,7 +184,7 @@ public class ChatService extends Service {
 
             try {
                 connection.sendStanza(usersQuery);
-            } catch (SmackException.NotConnectedException e) {
+            } catch (SmackException.NotConnectedException | InterruptedException e) {
                 Log.e(TAG, "Failed to query users", e);
             }
 
@@ -188,34 +193,46 @@ public class ChatService extends Service {
 
             try {
                 connection.sendStanza(tasksQuery);
-            } catch (SmackException.NotConnectedException e) {
+            } catch (SmackException.NotConnectedException | InterruptedException e) {
                 Log.e(TAG, "Failed to query tasks", e);
             }
 
             if (muc == null) {
+                EntityBareJid roomJid;
+
+                try {
+                    roomJid = JidCreate.entityBareFrom(room + "@conference." + connection.getServiceName());
+                } catch (XmppStringprepException e) {
+                    Log.e(TAG, "Failed to create room JID", e);
+                    return;
+                }
+
                 muc = MultiUserChatManager.getInstanceFor(connection)
-                    .getMultiUserChat(room + "@conference." + connection.getServiceName());
+                    .getMultiUserChat(roomJid);
                 muc.addMessageListener(messageListener);
                 muc.addParticipantListener(presenceListener);
             }
 
-            String username = connection.getUser();
-            username = username.substring(0, username.indexOf('@'));
-
             try {
-                DiscussionHistory history = new DiscussionHistory();
+                MucEnterConfiguration.Builder builder = muc.getEnterConfigurationBuilder(Resourcepart.from(getUser()));
                 if (lastMessageDate != null) {
-                    history.setSince(new Date(lastMessageDate.getTime() + 1));
+                    builder.requestHistorySince(new Date(lastMessageDate.getTime() + 1));
                 } else {
-                    history.setSeconds(DAY_IN_SECONDS);
+                    builder.requestHistorySince(DAY_IN_SECONDS);
                 }
-                muc.join(username, "", history, connection.getPacketReplyTimeout());
-            } catch (SmackException | XMPPException e) {
+                muc.join(builder.build());
+            } catch (SmackException | XMPPException | XmppStringprepException | InterruptedException e) {
                 Log.e(TAG, "Failed to join the room", e);
             }
 
             sendBroadcast(new Intent(ChatService.STATUS)
                 .putExtra("status", ChatService.STATUS_CONNECTED));
+        }
+
+        @Override
+        public void connectionClosed() {
+            sendBroadcast(new Intent(ChatService.STATUS)
+                .putExtra("status", ChatService.STATUS_DISCONNECTED));
         }
 
         @Override
@@ -236,12 +253,12 @@ public class ChatService extends Service {
     private final MessageListener messageListener = new MessageListener() {
         @Override
         public void processMessage(Message message) {
-            String resource = XmppStringUtils.parseResource(message.getFrom());
-            if (resource.isEmpty()) {
+            Resourcepart resource = message.getFrom().getResourceOrNull();
+            if (resource == null)
                 return;
-            }
+            String username = resource.toString();
 
-            UserEntry user = userRegistry.findOrRegister(resource);
+            UserEntry user = userRegistry.findOrRegister(username);
             Date time = new Date();
             DelayInformation delay = (DelayInformation) message.getExtension(DelayInformation.NAMESPACE);
             if (delay != null) {
@@ -275,9 +292,10 @@ public class ChatService extends Service {
     private final PresenceListener presenceListener = new PresenceListener() {
         @Override
         public void processPresence(Presence presence) {
-            String username = XmppStringUtils.parseResource(presence.getFrom());
-            if (username == null)
+            Resourcepart resource = presence.getFrom().getResourceOrNull();
+            if (resource == null)
                 return;
+            String username = resource.toString();
 
             if (presence.isAvailable()) {
                 Log.d(TAG, "User joined: " + username);
@@ -293,7 +311,7 @@ public class ChatService extends Service {
 
     private final StanzaListener taskListener = new StanzaListener() {
         @Override
-        public void processPacket(Stanza packet) {
+        public void processStanza(Stanza packet) {
             if (packet instanceof TaskList) {
                 TaskList taskList = (TaskList) packet;
                 Log.d(TAG, "Received task list:");
@@ -316,7 +334,7 @@ public class ChatService extends Service {
 
     private final StanzaListener userListener = new StanzaListener() {
         @Override
-        public void processPacket(Stanza packet) {
+        public void processStanza(Stanza packet) {
             if (packet instanceof UserList) {
                 UserList userList = (UserList) packet;
                 Log.d(TAG, "Received user list:");
@@ -619,23 +637,31 @@ public class ChatService extends Service {
     }
 
     public void disconnect() {
+        if (muc != null) {
+            muc.removeMessageListener(messageListener);
+            muc.removeParticipantListener(presenceListener);
+        }
+
         if (connectionTask != null)
             connectionTask.cancel(false);
 
-        if (connection != null)
-            connection.disconnect();
-
-        sendBroadcast(new Intent(ChatService.STATUS)
-            .putExtra("status", ChatService.STATUS_DISCONNECTED));
+        if (connection != null) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    connection.disconnect();
+                }
+            }).start();
+        }
     }
 
     public String getUser() {
-        if (connection == null)
+        if (connection == null || connection.getUser() == null)
             return null;
-        String username = connection.getUser();
-        if (username != null)
-            username = username.substring(0, username.indexOf('@'));
-        return username;
+        Localpart username = connection.getUser().getLocalpartOrNull();
+        if (username == null)
+            return null;
+        return username.toString();
     }
 
     public boolean isPowerUser() {
@@ -660,7 +686,7 @@ public class ChatService extends Service {
 
         try {
             muc.sendMessage(text);
-        } catch (SmackException.NotConnectedException e) {
+        } catch (SmackException.NotConnectedException | InterruptedException e) {
             Log.e(TAG, "Failed to send message", e);
         }
     }
@@ -675,7 +701,7 @@ public class ChatService extends Service {
 
         try {
             connection.sendStanza(iq);
-        } catch (SmackException.NotConnectedException e) {
+        } catch (SmackException.NotConnectedException | InterruptedException e) {
             Log.e(TAG, "Failed to send status", e);
         }
     }
@@ -690,7 +716,7 @@ public class ChatService extends Service {
 
         try {
             connection.sendStanza(iq);
-        } catch (SmackException.NotConnectedException e) {
+        } catch (SmackException.NotConnectedException | InterruptedException e) {
             Log.e(TAG, "Failed to send task", e);
         }
     }

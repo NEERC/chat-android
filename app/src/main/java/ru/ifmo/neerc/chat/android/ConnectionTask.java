@@ -18,6 +18,8 @@ package ru.ifmo.neerc.chat.android;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
@@ -42,6 +44,9 @@ import org.jivesoftware.smack.util.TLSUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 
+import org.jxmpp.jid.DomainBareJid;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.stringprep.XmppStringprepException;
 import org.jxmpp.util.XmppStringUtils;
 
 public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
@@ -66,12 +71,33 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
 
     @Override
     protected Boolean doInBackground(Void... params) {
+        DomainBareJid serverJid;
+        try {
+            serverJid = JidCreate.domainBareFrom(server);
+        } catch (XmppStringprepException e) {
+            Log.e(TAG, "Failed to create server JID", e);
+            return false;
+        }
+
+        InetAddress address;
+        try {
+            address = InetAddress.getByName(server);
+        } catch (UnknownHostException e) {
+            Log.e(TAG, "Failed to resolve host " + server, e);
+            return false;
+        }
+
         XMPPTCPConnectionConfiguration.Builder builder = XMPPTCPConnectionConfiguration.builder()
             .setUsernameAndPassword(XmppStringUtils.escapeLocalpart(username), password)
-            .setServiceName(server)
-            .setHost(server)
-            .setPort(port)
-            .setResource(username + "_" + StringUtils.randomString(10));
+            .setServiceName(serverJid)
+            .setHostAddress(address)
+            .setPort(port);
+
+        try {
+            builder.setResource(username + "_" + StringUtils.randomString(10));
+        } catch (XmppStringprepException e) {
+            Log.w(TAG, "Failed to set resource", e);
+        }
 
         if (!BuildConfig.DEBUG) {
             builder.setSecurityMode(XMPPTCPConnectionConfiguration.SecurityMode.required);
@@ -92,7 +118,7 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
             TrustManager[] tm = null;
             if (BuildConfig.DEBUG) {
                 tm = new TrustManager[] { new TLSUtils.AcceptAllTrustManager() };
-                TLSUtils.disableHostnameVerificationForTlsCertificicates(builder);
+                TLSUtils.disableHostnameVerificationForTlsCertificates(builder);
             }
 
             SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -121,7 +147,7 @@ public class ConnectionTask extends AsyncTask<Void, String, Boolean> {
                 conn.login();
 
                 return true;
-            } catch (SmackException | XMPPException | IOException e) {
+            } catch (SmackException | XMPPException | IOException | InterruptedException e) {
                 context.sendBroadcast(new Intent(ChatService.STATUS)
                     .putExtra("status", ChatService.STATUS_DISCONNECTED));
 
