@@ -7,6 +7,7 @@
     <string name="all_cancel">Cancel</string>
 
     <!-- Login activity -->
+    <string name="login_version_name">Version %s</string>
     <string name="login_username_hint">Username</string>
     <string name="login_username_error">Username can not be empty</string>
     <string name="login_password_hint">Password</string>
