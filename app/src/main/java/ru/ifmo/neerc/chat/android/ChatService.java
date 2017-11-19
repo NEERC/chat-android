@@ -67,6 +67,7 @@ import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPConnectionRegistry;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.delay.packet.DelayInformation;
 import org.jivesoftware.smackx.muc.MucEnterConfiguration;
 import org.jivesoftware.smackx.muc.MultiUserChat;
@@ -127,7 +128,7 @@ public class ChatService extends Service {
     private String room;
     private boolean hasCredentials = false;
 
-    private ConnectionTask connectionTask;
+    private ConnectionManager connectionManager;
 
     private AbstractXMPPConnection connection;
     private MultiUserChat muc;
@@ -180,6 +181,12 @@ public class ChatService extends Service {
     private final ConnectionListener connectionListener = new AbstractConnectionListener() {
         @Override
         public void authenticated(XMPPConnection connection, boolean resumed) {
+            if (((XMPPTCPConnection) connection).streamWasResumed()) {
+                sendBroadcast(new Intent(ChatService.STATUS)
+                    .putExtra("status", ChatService.STATUS_CONNECTED));
+                return;
+            }
+
             UserList usersQuery = new UserList();
             usersQuery.setTo(room + "@neerc." + connection.getServiceName());
 
@@ -414,6 +421,7 @@ public class ChatService extends Service {
         Log.d(TAG, "Service destroyed");
 
         disconnect();
+        connectionManager = null;
 
         unregisterReceiver(taskActionReceiver);
 
@@ -638,8 +646,8 @@ public class ChatService extends Service {
 
         hasCredentials = true;
 
-        connectionTask = new ConnectionTask(this, username, password, server, port);
-        connectionTask.execute();
+        connectionManager = new ConnectionManager(this, username, password, server, port);
+        connectionManager.connect();
     }
 
     public void disconnect() {
@@ -648,17 +656,17 @@ public class ChatService extends Service {
             muc.removeParticipantListener(presenceListener);
         }
 
-        if (connectionTask != null)
-            connectionTask.cancel(false);
+        connectionManager.disconnect(false);
+    }
 
-        if (connection != null) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    connection.disconnect();
-                }
-            }).start();
-        }
+    public void suspend() {
+        if (connectionManager != null)
+            connectionManager.disconnect(true);
+    }
+
+    public void resume() {
+        if (connectionManager != null)
+            connectionManager.connect();
     }
 
     public String getUser() {
