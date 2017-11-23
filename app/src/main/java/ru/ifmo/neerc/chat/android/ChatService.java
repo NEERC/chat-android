@@ -62,6 +62,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.PresenceListener;
 import org.jivesoftware.smack.provider.ProviderManager;
+import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -80,6 +81,7 @@ import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 import org.jxmpp.util.XmppStringUtils;
 
+import ru.ifmo.neerc.chat.android.push.FirebasePushNotificationsManager;
 import ru.ifmo.neerc.task.Task;
 import ru.ifmo.neerc.task.TaskActions;
 import ru.ifmo.neerc.task.TaskStatus;
@@ -123,12 +125,15 @@ public class ChatService extends Service {
 
     private final IBinder binder = new LocalBinder();
 
+    private boolean isForeground = false;
+
     private NotificationManager notificationManager;
 
     private String room;
     private boolean hasCredentials = false;
 
     private ConnectionManager connectionManager;
+    private FirebasePushNotificationsManager pushNotificationsManager;
 
     private AbstractXMPPConnection connection;
     private MultiUserChat muc;
@@ -175,6 +180,8 @@ public class ChatService extends Service {
             connection.addAsyncStanzaListener(userListener,
                 new StanzaTypeFilter(UserList.class)
             );
+
+            pushNotificationsManager = FirebasePushNotificationsManager.getInstanceFor(connection);
         }
     };
 
@@ -382,6 +389,8 @@ public class ChatService extends Service {
 
             String type = TaskActions.getNewStatus(task, user, action);
             sendStatus(task, new TaskStatus(type, ""));
+
+            connectionManager.connect();
         }
     };
 
@@ -421,7 +430,6 @@ public class ChatService extends Service {
         Log.d(TAG, "Service destroyed");
 
         disconnect();
-        connectionManager = null;
 
         unregisterReceiver(taskActionReceiver);
 
@@ -656,17 +664,12 @@ public class ChatService extends Service {
             muc.removeParticipantListener(presenceListener);
         }
 
-        connectionManager.disconnect(false);
+        connectionManager.disconnect();
+        connectionManager = null;
     }
 
-    public void suspend() {
-        if (connectionManager != null)
-            connectionManager.disconnect(true);
-    }
-
-    public void resume() {
-        if (connectionManager != null)
-            connectionManager.connect();
+    public ConnectionManager getConnectionManager() {
+        return connectionManager;
     }
 
     public String getUser() {

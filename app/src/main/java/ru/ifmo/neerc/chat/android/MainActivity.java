@@ -287,6 +287,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+
+        if (chatService != null)
+            chatService.getConnectionManager().setForeground(false);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (chatService != null)
+            chatService.getConnectionManager().setForeground(true);
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
 

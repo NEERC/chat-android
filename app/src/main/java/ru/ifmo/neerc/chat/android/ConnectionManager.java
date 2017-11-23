@@ -30,6 +30,7 @@ import javax.net.ssl.TrustManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.os.Handler;
 import android.util.Log;
 
 import org.jivesoftware.smack.AbstractConnectionListener;
@@ -47,14 +48,21 @@ import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 import org.jxmpp.util.XmppStringUtils;
 
+import ru.ifmo.neerc.chat.android.push.FirebasePushNotificationsManager;
+
 public class ConnectionManager {
 
     private static final String TAG = "ConnectionManager";
+
+    private static final int SUSPEND_DELAY = 5000;
 
     private Context context;
 
     private XMPPTCPConnection connection = null;
     private Thread connectionThread = null;
+
+    private boolean foreground = true;
+    private Handler suspendHandler = new Handler();
 
     public ConnectionManager(Context context, String username, String password, String server, int port) {
         this.context = context;
@@ -139,36 +147,62 @@ public class ConnectionManager {
     }
 
     public void connect() {
+        if (connection == null || connection.isAuthenticated())
+            return;
+
         if (connectionThread == null || !connectionThread.isAlive()) {
             connectionThread = new Thread(new ConnectionRunnable());
             connectionThread.start();
         }
     }
 
-    public void disconnect(boolean suspend) {
+    public void disconnect() {
         if (connectionThread != null && connectionThread.isAlive()) {
             connectionThread.interrupt();
         }
 
         connectionThread = null;
 
-        if (connection != null && connection.isConnected()) {
-            if (suspend) {
-                if (connection.isSmResumptionPossible()) {
-                    connection.instantShutdown();
-                    Log.d(TAG, "Connection was suspended");
-                } else {
-                    Log.d(TAG, "SM resumption is not possible");
-                }
-            } else {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        connection.disconnect();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (connection != null && connection.isConnected()) {
+                    try {
+                        FirebasePushNotificationsManager.getInstanceFor(connection).disable();
+                    } catch (SmackException | XMPPException | InterruptedException e) {
+                        Log.e(TAG, "Failed to disable push notifications", e);
                     }
-                }).start();
+
+                    connection.disconnect();
+                }
             }
+        }).start();
+    }
+
+    public void setForeground(boolean foreground) {
+        this.foreground = foreground;
+
+        if (this.foreground) {
+            connect();
+        } else if (canSuspend()) {
+            suspendHandler.postDelayed(new SuspendRunnable(), SUSPEND_DELAY);
         }
+    }
+
+    public boolean canSuspend() {
+        if (foreground)
+            return false;
+
+        if (connection == null || !connection.isAuthenticated())
+            return false;
+
+        if (!connection.isSmResumptionPossible())
+            return false;
+
+        if (!FirebasePushNotificationsManager.getInstanceFor(connection).isEnabled())
+            return false;
+
+        return true;
     }
 
     private class ConnectionRunnable implements Runnable {
@@ -232,7 +266,25 @@ public class ConnectionManager {
         }
     }
 
+    private class SuspendRunnable implements Runnable {
+        @Override
+        public void run() {
+            if (!canSuspend())
+                return;
+
+            connection.instantShutdown();
+            Log.d(TAG, "Connection was suspended");
+        }
+    }
+
     private class ConnectionListener extends AbstractConnectionListener {
+        @Override
+        public void authenticated(XMPPConnection connection, boolean resumed) {
+            if (canSuspend()) {
+                suspendHandler.postDelayed(new SuspendRunnable(), SUSPEND_DELAY);
+            }
+        }
+
         @Override
         public void connectionClosedOnError(Exception e) {
             connect();
