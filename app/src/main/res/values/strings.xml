@@ -84,4 +84,12 @@
         <item>FAIL</item>
     </string-array>
 
+    <!-- Preferences -->
+    <string name="pref_connection_title">Connection</string>
+    <string name="pref_keepConnection">Keep connection active</string>
+    <string name="pref_keepConnection_summ">
+        Check if you experience problems with notifications delivery.
+        May cause higher battery drain.
+    </string>
+
 </resources>

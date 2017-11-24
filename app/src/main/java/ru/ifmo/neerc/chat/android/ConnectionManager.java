@@ -29,8 +29,11 @@ import javax.net.ssl.TrustManager;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.AssetManager;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.jivesoftware.smack.AbstractConnectionListener;
@@ -49,8 +52,9 @@ import org.jxmpp.stringprep.XmppStringprepException;
 import org.jxmpp.util.XmppStringUtils;
 
 import ru.ifmo.neerc.chat.android.push.FirebasePushNotificationsManager;
+import ru.ifmo.neerc.chat.android.settings.SettingsActivity;
 
-public class ConnectionManager {
+public class ConnectionManager implements OnSharedPreferenceChangeListener {
 
     private static final String TAG = "ConnectionManager";
 
@@ -62,10 +66,15 @@ public class ConnectionManager {
     private Thread connectionThread = null;
 
     private boolean foreground = true;
+    private boolean keepConnection = false;
     private Handler suspendHandler = new Handler();
 
     public ConnectionManager(Context context, String username, String password, String server, int port) {
         this.context = context;
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.context);
+        keepConnection = sharedPreferences.getBoolean(SettingsActivity.KEY_PREF_KEEP_CONNECTION, false);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
         createConnection(username, password, server, port);
     }
@@ -190,7 +199,7 @@ public class ConnectionManager {
     }
 
     public boolean canSuspend() {
-        if (foreground)
+        if (keepConnection || foreground)
             return false;
 
         if (connection == null || !connection.isAuthenticated())
@@ -288,6 +297,18 @@ public class ConnectionManager {
         @Override
         public void connectionClosedOnError(Exception e) {
             connect();
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (SettingsActivity.KEY_PREF_KEEP_CONNECTION.equals(key)) {
+            keepConnection = sharedPreferences.getBoolean(key, false);
+            if (keepConnection) {
+                connect();
+            } else if (canSuspend()) {
+                suspendHandler.postDelayed(new SuspendRunnable(), SUSPEND_DELAY);
+            }
         }
     }
 }
