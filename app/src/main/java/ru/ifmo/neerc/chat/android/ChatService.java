@@ -125,8 +125,6 @@ public class ChatService extends Service {
 
     private final IBinder binder = new LocalBinder();
 
-    private boolean isForeground = false;
-
     private NotificationManager notificationManager;
 
     private String room;

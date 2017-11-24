@@ -49,6 +49,8 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.util.Log;
 
+import ru.ifmo.neerc.chat.android.settings.SettingsActivity;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
@@ -328,6 +330,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.settings:
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+                return true;
             case R.id.logout:
                 getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE)
                     .edit()

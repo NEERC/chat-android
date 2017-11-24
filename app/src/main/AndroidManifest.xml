@@ -22,6 +22,7 @@
             </intent-filter>
         </activity>
         <activity android:name="LoginActivity"/>
+        <activity android:name=".settings.SettingsActivity"/>
 
         <service android:name="ChatService"/>
 
