@@ -27,12 +27,16 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.AssetManager;
+import android.os.Build;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -59,6 +63,7 @@ public class ConnectionManager implements OnSharedPreferenceChangeListener {
     private static final String TAG = "ConnectionManager";
 
     private static final int SUSPEND_DELAY = 5000;
+    private static final int ALARM_DELAY = 10 * 60 * 1000;
 
     private Context context;
 
@@ -69,12 +74,19 @@ public class ConnectionManager implements OnSharedPreferenceChangeListener {
     private boolean keepConnection = false;
     private Handler suspendHandler = new Handler();
 
+    private final AlarmManager alarmManager;
+    private final PendingIntent alarmIntent;
+
     public ConnectionManager(Context context, String username, String password, String server, int port) {
         this.context = context;
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.context);
         keepConnection = sharedPreferences.getBoolean(SettingsActivity.KEY_PREF_KEEP_CONNECTION, false);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+
+        alarmManager = (AlarmManager)this.context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this.context, ChatService.class);
+        alarmIntent = PendingIntent.getService(this.context, 0, intent, 0);
 
         createConnection(username, password, server, port);
     }
@@ -171,6 +183,8 @@ public class ConnectionManager implements OnSharedPreferenceChangeListener {
         }
 
         connectionThread = null;
+
+        alarmManager.cancel(alarmIntent);
 
         new Thread(new Runnable() {
             @Override
@@ -280,6 +294,20 @@ public class ConnectionManager implements OnSharedPreferenceChangeListener {
         public void run() {
             if (!canSuspend())
                 return;
+
+            if (Build.VERSION.SDK_INT >= 23) {
+                alarmManager.setAndAllowWhileIdle(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + ALARM_DELAY,
+                    alarmIntent
+                );
+            } else {
+                alarmManager.set(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + ALARM_DELAY,
+                    alarmIntent
+                );
+            }
 
             connection.instantShutdown();
             Log.d(TAG, "Connection was suspended");

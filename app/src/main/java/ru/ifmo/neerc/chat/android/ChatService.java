@@ -419,6 +419,7 @@ public class ChatService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        connectionManager.connect();
         Log.d(TAG, "Service started");
         return START_STICKY;
     }
