@@ -68,10 +68,14 @@ public class FirebasePushNotificationsManager {
 
         RemoteCommand registerCommand = adHocCommandManager.getRemoteCommand(serviceJid, "register-push-gcm");
 
+        FormField deviceId = new FormField("device-id");
+        deviceId.addValue(FirebaseInstanceId.getInstance().getId());
+
         FormField token = new FormField("token");
         token.addValue(FirebaseInstanceId.getInstance().getToken());
 
         Form form = new Form(DataForm.Type.submit);
+        form.addField(deviceId);
         form.addField(token);
 
         registerCommand.execute(form);
