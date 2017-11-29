@@ -107,7 +107,14 @@ public class FirebasePushNotificationsManager {
             Log.d(TAG, "Disabled push notifications for jid " + pushJid);
 
             RemoteCommand unregisterCommand = adHocCommandManager.getRemoteCommand(serviceJid, "unregister-push");
-            unregisterCommand.execute();
+
+            FormField deviceId = new FormField("device-id");
+            deviceId.addValue(FirebaseInstanceId.getInstance().getId());
+
+            Form form = new Form(DataForm.Type.submit);
+            form.addField(deviceId);
+
+            unregisterCommand.execute(form);
             Log.d(TAG, "Unregistered node");
         } finally {
             enabled = false;
