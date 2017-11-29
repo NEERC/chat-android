@@ -324,7 +324,9 @@ public class ConnectionManager implements OnSharedPreferenceChangeListener {
 
         @Override
         public void connectionClosedOnError(Exception e) {
-            connect();
+            Log.e(TAG, "Connection closed on error", e);
+            if (connectionThread != null)
+                connect();
         }
     }
 
