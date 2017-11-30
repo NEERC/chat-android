@@ -274,10 +274,16 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
 
         switch (intent.getAction()) {
-            case ACTION_CHAT:
+            case ACTION_CHAT: {
                 viewPager.setCurrentItem(ChatPagerAdapter.FRAGMENT_CHAT);
+                String username = intent.getStringExtra(ChatService.EXTRA_USERNAME);
+                Fragment fragment = pagerAdapter.getFragment(ChatPagerAdapter.FRAGMENT_CHAT);
+                if (username != null && (fragment instanceof ChatFragment)) {
+                    ((ChatFragment) fragment).setPrivateAddress(username);
+                }
                 break;
-            case ACTION_TASKS:
+            }
+            case ACTION_TASKS: {
                 viewPager.setCurrentItem(ChatPagerAdapter.FRAGMENT_TASKS);
                 String taskId = intent.getStringExtra(ChatService.EXTRA_TASK_ID);
                 Fragment fragment = pagerAdapter.getFragment(ChatPagerAdapter.FRAGMENT_TASKS);
@@ -285,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
                     ((TasksFragment) fragment).setSelectedTask(taskId);
                 }
                 break;
+            }
         }
     }
 

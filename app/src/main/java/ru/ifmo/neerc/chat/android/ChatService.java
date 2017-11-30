@@ -113,6 +113,7 @@ public class ChatService extends Service {
 
     public static final String EXTRA_TASK_ID = "ru.ifmo.neerc.chat.android.extra.TASK_ID";
     public static final String EXTRA_ACTION = "ru.ifmo.neerc.chat.android.extra.ACTION";
+    public static final String EXTRA_USERNAME = "ru.ifmo.neerc.chat.android.extra.USERNAME";
 
     public static final int STATUS_DISCONNECTED = 0;
     public static final int STATUS_CONNECTING = 1;

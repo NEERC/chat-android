@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +31,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import ru.ifmo.neerc.chat.ChatMessage;
+import ru.ifmo.neerc.chat.user.UserEntry;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
 
@@ -38,7 +40,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     private final List<ChatMessage> messages = new ArrayList<ChatMessage>();
     private final boolean priorityOnly;
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView timeView;
         public TextView usernameView;
         public TextView messageView;
@@ -49,6 +51,20 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
             timeView = (TextView) view.findViewById(R.id.time);
             usernameView = (TextView) view.findViewById(R.id.username);
             messageView = (TextView) view.findViewById(R.id.message);
+
+            usernameView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ChatMessage message = messages.get(getAdapterPosition());
+                    UserEntry user = message.getUser();
+                    if (user != null) {
+                        Intent intent = new Intent(view.getContext(), MainActivity.class);
+                        intent.setAction(MainActivity.ACTION_CHAT);
+                        intent.putExtra(ChatService.EXTRA_USERNAME, user.getName());
+                        view.getContext().startActivity(intent);
+                    }
+                }
+            });
         }
     }
 

@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -61,6 +62,21 @@ public class RosterAdapter extends RecyclerView.Adapter<RosterAdapter.ViewHolder
                     @Override
                     public void onClick(View view) {
                         toggleSelection(items.get(getAdapterPosition()));
+                    }
+                });
+            } else {
+                view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Object item = items.get(getAdapterPosition());
+                        if (item instanceof UserEntry) {
+                            UserEntry user = (UserEntry) item;
+
+                            Intent intent = new Intent(view.getContext(), MainActivity.class);
+                            intent.setAction(MainActivity.ACTION_CHAT);
+                            intent.putExtra(ChatService.EXTRA_USERNAME, user.getName());
+                            view.getContext().startActivity(intent);
+                        }
                     }
                 });
             }

@@ -122,4 +122,13 @@ public class ChatFragment extends Fragment {
         chatList.scrollToPosition(adapter.getItemCount() - 1);
         priorityChatList.scrollToPosition(priorityAdapter.getItemCount() - 1);
     }
+
+    public void setPrivateAddress(String username) {
+        String message = messageInput.getText().toString();
+        message = message.replaceAll("\\A[a-zA-Z0-9%]+>\\s*", "");
+        message = username + "> " + message;
+        messageInput.setText(message);
+        messageInput.setSelection(message.length());
+        messageInput.requestFocus();
+    }
 }
