@@ -291,7 +291,7 @@ public class ChatService extends Service {
             }
 
             UserEntry currentUser = userRegistry.findOrRegister(getUser());
-            if (delay == null && chatMessage.isImportantFor(currentUser)) {
+            if (chatMessage.isImportantFor(currentUser)) {
                 addImportantMessage(chatMessage);
             }
 
