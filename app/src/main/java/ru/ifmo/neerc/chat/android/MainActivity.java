@@ -345,6 +345,7 @@ public class MainActivity extends AppCompatActivity {
                 getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE)
                     .edit()
                     .putBoolean("login", false)
+                    .remove("last_message_date")
                     .apply();
                 stopService(new Intent(this, ChatService.class));
                 return true;

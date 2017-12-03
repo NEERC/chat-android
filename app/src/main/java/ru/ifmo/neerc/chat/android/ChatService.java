@@ -235,6 +235,8 @@ public class ChatService extends Service {
                     builder.requestHistorySince(new Date(lastMessageDate.getTime() + 1));
                 } else {
                     builder.requestHistorySince(DAY_IN_SECONDS);
+                    SharedPreferences preferences = getSharedPreferences(CONNECTION, MODE_PRIVATE);
+                    lastMessageDate = new Date(preferences.getLong("last_message_date", 0));
                 }
                 muc.join(builder.build());
             } catch (SmackException | XMPPException | XmppStringprepException | InterruptedException e) {
@@ -293,14 +295,21 @@ public class ChatService extends Service {
             }
 
             UserEntry currentUser = userRegistry.findOrRegister(getUser());
-            if (chatMessage.isImportantFor(currentUser)) {
+            if (time.after(lastMessageDate) && chatMessage.isImportantFor(currentUser)) {
                 addImportantMessage(chatMessage);
             }
 
             sendBroadcast(new Intent(ChatService.MESSAGE)
                 .putExtra("message", chatMessage));
 
-            lastMessageDate = time;
+            if (time.after(lastMessageDate)) {
+                lastMessageDate = time;
+
+                getSharedPreferences(ChatService.CONNECTION, MODE_PRIVATE)
+                    .edit()
+                    .putLong("last_message_date", lastMessageDate.getTime())
+                    .apply();
+            }
         }
     };
 
