@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
 
     <application
+        android:name=".ChatApplication"
         android:theme="@style/ChatTheme"
         android:icon="@drawable/ic_launcher"
         android:logo="@drawable/ic_logo"

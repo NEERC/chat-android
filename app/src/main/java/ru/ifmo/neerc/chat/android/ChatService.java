@@ -81,6 +81,8 @@ import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 import org.jxmpp.util.XmppStringUtils;
 
+import com.bugfender.sdk.Bugfender;
+
 import ru.ifmo.neerc.chat.android.push.FirebasePushNotificationsManager;
 import ru.ifmo.neerc.task.Task;
 import ru.ifmo.neerc.task.TaskActions;
@@ -653,6 +655,8 @@ public class ChatService extends Service {
         }
 
         hasCredentials = true;
+
+        Bugfender.setDeviceString("username", username);
 
         connectionManager = new ConnectionManager(this, username, password, server, port);
         connectionManager.connect();
