@@ -16,8 +16,6 @@ public class ChatFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        Log.d(TAG, "Received message: " + remoteMessage.getData());
-
         try {
             Stanza stanza = PacketParserUtils.parseStanza(remoteMessage.getData().get("stanza"));
             if (!shouldResumeConnection(stanza))
@@ -25,6 +23,8 @@ public class ChatFirebaseMessagingService extends FirebaseMessagingService {
         } catch (Exception e) {
             // ignore
         }
+
+        Log.d(TAG, "Received message: " + remoteMessage.getData());
 
         ChatService chatService = ChatService.getInstance();
         if (chatService != null)

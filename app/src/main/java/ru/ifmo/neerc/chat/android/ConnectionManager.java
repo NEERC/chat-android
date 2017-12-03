@@ -270,16 +270,13 @@ public class ConnectionManager implements OnSharedPreferenceChangeListener {
 
                 int delay = getReconnectionDelay();
 
-                while (delay > 0) {
-                    try {
-                        Log.i(TAG, "Connecting in " + delay + " seconds...");
-                        Thread.sleep(1000);
-                        delay--;
-                    } catch (InterruptedException e) {
-                        Log.e(TAG, "Connection thread was interrupted", e);
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
+                try {
+                    Log.i(TAG, "Connecting in " + delay + " seconds...");
+                    Thread.sleep(delay * 1000);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Connection thread was interrupted", e);
+                    Thread.currentThread().interrupt();
+                    break;
                 }
             }
 

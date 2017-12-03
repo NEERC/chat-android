@@ -281,7 +281,6 @@ public class ChatService extends Service {
                 time = delay.getStamp();
             }
             ChatMessage chatMessage = new ChatMessage(message.getBody(), user, null, time);
-            Log.d(TAG, chatMessage.getUser().getName() + ": " + chatMessage.getText());
 
             if (chatMessage.getTo() != null
                     && !chatMessage.getUser().getName().equals(getUser())
