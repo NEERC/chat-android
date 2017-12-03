@@ -289,25 +289,30 @@ public class ConnectionManager implements OnSharedPreferenceChangeListener {
     private class SuspendRunnable implements Runnable {
         @Override
         public void run() {
-            if (!canSuspend())
-                return;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (!canSuspend())
+                        return;
 
-            if (Build.VERSION.SDK_INT >= 23) {
-                alarmManager.setAndAllowWhileIdle(
-                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime() + ALARM_DELAY,
-                    alarmIntent
-                );
-            } else {
-                alarmManager.set(
-                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime() + ALARM_DELAY,
-                    alarmIntent
-                );
-            }
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        alarmManager.setAndAllowWhileIdle(
+                            AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                            SystemClock.elapsedRealtime() + ALARM_DELAY,
+                            alarmIntent
+                        );
+                    } else {
+                        alarmManager.set(
+                            AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                            SystemClock.elapsedRealtime() + ALARM_DELAY,
+                            alarmIntent
+                        );
+                    }
 
-            connection.instantShutdown();
-            Log.d(TAG, "Connection was suspended");
+                    connection.instantShutdown();
+                    Log.d(TAG, "Connection was suspended");
+                }
+            }).start();
         }
     }
 
