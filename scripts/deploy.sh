@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SRC=app/build/outputs/apk/app-neerc-release.apk
+SRC=app/build/outputs/apk/neerc/release/app-neerc-release.apk
 
 USER=volunteers
 HOST=neerc.ifmo.ru
