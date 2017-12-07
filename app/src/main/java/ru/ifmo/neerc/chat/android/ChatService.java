@@ -90,6 +90,8 @@ import ru.ifmo.neerc.task.TaskStatus;
 import ru.ifmo.neerc.task.TaskRegistry;
 import ru.ifmo.neerc.task.TaskRegistryListener;
 import ru.ifmo.neerc.chat.ChatMessage;
+import ru.ifmo.neerc.chat.packet.OobExtension;
+import ru.ifmo.neerc.chat.packet.OobExtensionProvider;
 import ru.ifmo.neerc.chat.packet.TaskExtension;
 import ru.ifmo.neerc.chat.packet.TaskExtensionProvider;
 import ru.ifmo.neerc.chat.packet.TaskIQ;
@@ -282,7 +284,14 @@ public class ChatService extends Service {
             if (delay != null) {
                 time = delay.getStamp();
             }
-            ChatMessage chatMessage = new ChatMessage(message.getBody(), user, null, time);
+
+            String url = null;
+            OobExtension oobExtension = (OobExtension) message.getExtension(OobExtension.NAMESPACE);
+            if (oobExtension != null) {
+                url = oobExtension.getUrl();
+            }
+
+            ChatMessage chatMessage = new ChatMessage(message.getBody(), url, user, null, time);
 
             if (chatMessage.getTo() != null
                     && !chatMessage.getUser().getName().equals(getUser())
@@ -413,6 +422,7 @@ public class ChatService extends Service {
         ProviderManager.addIQProvider(TaskList.ELEMENT_NAME, TaskList.NAMESPACE, new TaskListProvider());
         ProviderManager.addIQProvider(UserList.ELEMENT_NAME, UserList.NAMESPACE, new UserListProvider());
         ProviderManager.addExtensionProvider(TaskExtension.ELEMENT_NAME, TaskExtension.NAMESPACE, new TaskExtensionProvider());
+        ProviderManager.addExtensionProvider(OobExtension.ELEMENT_NAME, OobExtension.NAMESPACE, new OobExtensionProvider());
 
         SharedPreferences preferences = getSharedPreferences(CONNECTION, MODE_PRIVATE);
         room = preferences.getString("room", "neerc");

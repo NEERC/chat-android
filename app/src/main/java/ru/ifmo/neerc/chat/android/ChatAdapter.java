@@ -24,11 +24,15 @@ import java.util.List;
 import java.util.Locale;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import ru.ifmo.neerc.chat.ChatMessage;
 import ru.ifmo.neerc.chat.user.UserEntry;
@@ -44,6 +48,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
         public TextView timeView;
         public TextView usernameView;
         public TextView messageView;
+        public ImageView photoView;
 
         public ViewHolder(View view) {
             super(view);
@@ -51,6 +56,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
             timeView = (TextView) view.findViewById(R.id.time);
             usernameView = (TextView) view.findViewById(R.id.username);
             messageView = (TextView) view.findViewById(R.id.message);
+            photoView = (ImageView) view.findViewById(R.id.message_photo);
 
             usernameView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -61,6 +67,19 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
                         Intent intent = new Intent(view.getContext(), MainActivity.class);
                         intent.setAction(MainActivity.ACTION_CHAT);
                         intent.putExtra(ChatService.EXTRA_USERNAME, user.getName());
+                        view.getContext().startActivity(intent);
+                    }
+                }
+            });
+
+            photoView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ChatMessage message = messages.get(getAdapterPosition());
+                    String url = message.getUrl();
+                    if (url != null) {
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.parse(url), "image/*");
                         view.getContext().startActivity(intent);
                     }
                 }
@@ -114,6 +133,17 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
         }
 
         holder.messageView.setTextAppearance(holder.messageView.getContext(), style);
+
+        if (message.getUrl() != null) {
+            holder.photoView.setVisibility(View.VISIBLE);
+            Glide.with(holder.photoView.getContext())
+                 .load(message.getUrl())
+                 .into(holder.photoView);
+        } else {
+            Glide.with(holder.photoView.getContext())
+                 .clear(holder.photoView);
+            holder.photoView.setVisibility(View.GONE);
+        }
     }
 
     @Override
