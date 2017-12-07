@@ -92,4 +92,7 @@
         May cause higher battery drain.
     </string>
 
+    <!-- Toasts -->
+    <string name="toast_photo_upload_failed">Photo upload failed, please try again</string>
+
 </resources>

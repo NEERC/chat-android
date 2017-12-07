@@ -28,20 +28,70 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:elevation="8dp"
+        android:background="#424242">
 
-        <EditText
-            android:id="@+id/message_input"
-            android:layout_width="0dp"
+        <RelativeLayout
+            android:id="@+id/photo_panel"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:inputType="text"/>
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:visibility="gone">
 
-        <Button
-            android:id="@+id/send_button"
-            android:layout_width="wrap_content"
+            <ImageView
+                android:id="@+id/photo_view"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginRight="-12dp"
+                android:layout_centerInParent="true"
+                android:scaleType="centerCrop"/>
+
+            <ProgressBar
+                android:id="@+id/photo_progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"/>
+
+            <ImageButton
+                android:id="@+id/remove_photo_button"
+                android:layout_toRightOf="@id/photo_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:src="@drawable/ic_close_circle_white_18dp"/>
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/chat_send"/>
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/photo_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_camera_white_24dp"/>
+
+            <EditText
+                android:id="@+id/message_input"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="text"/>
+
+            <Button
+                android:id="@+id/send_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/chat_send"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 

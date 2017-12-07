@@ -16,6 +16,7 @@
 
 package ru.ifmo.neerc.chat.android;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -690,6 +691,10 @@ public class ChatService extends Service {
         connectionManager = null;
     }
 
+    public XMPPConnection getConnection() {
+        return connection;
+    }
+
     public ConnectionManager getConnectionManager() {
         return connectionManager;
     }
@@ -719,12 +724,21 @@ public class ChatService extends Service {
         return messages;
     }
 
-    public void sendMessage(String text) {
+    public void sendMessage(String text, String url) {
         if (muc == null)
             return;
 
         try {
-            muc.sendMessage(text);
+            Message message = muc.createMessage();
+            message.setBody(text);
+
+            if (url != null) {
+                OobExtension oobExtension = new OobExtension();
+                oobExtension.setUrl(url);
+                message.addExtension(oobExtension);
+            }
+
+            muc.sendMessage(message);
         } catch (SmackException.NotConnectedException | InterruptedException e) {
             Log.e(TAG, "Failed to send message", e);
         }
