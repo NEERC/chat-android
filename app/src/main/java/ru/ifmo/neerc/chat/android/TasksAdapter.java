@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.MotionEvent;
 import android.view.LayoutInflater;
@@ -77,7 +76,7 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
 
             statusList = (RecyclerView) view.findViewById(R.id.status_list);
 
-            LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
+            AutoGridLayoutManager layoutManager = new AutoGridLayoutManager(view.getContext(), 32);
             statusList.setLayoutManager(layoutManager);
 
             adapter = new TaskStatusesAdapter();
@@ -89,8 +88,8 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
         }
 
         public void setExpanded(boolean expanded) {
-            LinearLayoutManager layoutManager = (LinearLayoutManager) statusList.getLayoutManager();
-            layoutManager.setOrientation(expanded ? LinearLayoutManager.VERTICAL : LinearLayoutManager.HORIZONTAL);
+            AutoGridLayoutManager layoutManager = (AutoGridLayoutManager) statusList.getLayoutManager();
+            layoutManager.setColumnWidth(expanded ? -1 : 32);
             if (expanded)
                 expandView.setImageResource(R.drawable.ic_chevron_up_grey600_24dp);
             else
