@@ -45,5 +45,7 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
+        <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
+
     </application>
 </manifest> 

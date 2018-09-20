@@ -8,8 +8,8 @@ android {
 
         minSdkVersion 14
 
-        versionCode 21
-        versionName "0.5.2"
+        versionCode 22
+        versionName "0.5.3"
     }
 
     flavorDimensions "tier"
