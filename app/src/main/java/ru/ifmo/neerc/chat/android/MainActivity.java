@@ -49,6 +49,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.util.Log;
 
+import ru.ifmo.neerc.chat.android.netadmin.NetAdminFragment;
 import ru.ifmo.neerc.chat.android.settings.SettingsActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -143,8 +144,9 @@ public class MainActivity extends AppCompatActivity {
         private static final int FRAGMENT_ROSTER = 0;
         private static final int FRAGMENT_CHAT = 1;
         private static final int FRAGMENT_TASKS = 2;
+        private static final int FRAGMENT_NETADMIN = 3;
 
-        private static final int COUNT = 3;
+        private static final int COUNT = 4;
 
         private final Map<Integer, Fragment> fragments = new TreeMap<Integer, Fragment>();
 
@@ -166,6 +168,8 @@ public class MainActivity extends AppCompatActivity {
                     return new ChatFragment();
                 case FRAGMENT_TASKS:
                     return new TasksFragment();
+                case FRAGMENT_NETADMIN:
+                    return new NetAdminFragment();
                 default:
                     return null;
             }
@@ -193,6 +197,8 @@ public class MainActivity extends AppCompatActivity {
                         sb.setSpan(span, start, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                     }
                     return sb;
+                case FRAGMENT_NETADMIN:
+                    return getResources().getText(R.string.tab_netadmin).toString().toUpperCase();
                 default:
                     return null;
             }

@@ -84,6 +84,9 @@ import org.jxmpp.util.XmppStringUtils;
 
 import com.bugfender.sdk.Bugfender;
 
+import ru.ifmo.neerc.chat.android.netadmin.Computer;
+import ru.ifmo.neerc.chat.android.netadmin.NetAdminListener;
+import ru.ifmo.neerc.chat.android.netadmin.NetAdminManager;
 import ru.ifmo.neerc.chat.android.push.FirebasePushNotificationsManager;
 import ru.ifmo.neerc.task.Task;
 import ru.ifmo.neerc.task.TaskActions;
@@ -117,6 +120,7 @@ public class ChatService extends Service {
     public static final String TASK = "ru.ifmo.neerc.chat.android.TASK";
     public static final String USER = "ru.ifmo.neerc.chat.android.USER";
     public static final String TASK_ACTION = "ru.ifmo.neerc.chat.android.TASK_ACTION";
+    public static final String NETADMIN = "ru.ifmo.neerc.chat.android.NETADMIN";
 
     public static final String EXTRA_TASK_ID = "ru.ifmo.neerc.chat.android.extra.TASK_ID";
     public static final String EXTRA_ACTION = "ru.ifmo.neerc.chat.android.extra.ACTION";
@@ -140,6 +144,7 @@ public class ChatService extends Service {
 
     private ConnectionManager connectionManager;
     private FirebasePushNotificationsManager pushNotificationsManager;
+    private NetAdminManager netAdminManager;
 
     private AbstractXMPPConnection connection;
     private MultiUserChat muc;
@@ -188,6 +193,9 @@ public class ChatService extends Service {
             );
 
             pushNotificationsManager = FirebasePushNotificationsManager.getInstanceFor(connection);
+
+            netAdminManager = NetAdminManager.getInstanceFor(connection);
+            netAdminManager.addListener(netAdminListener);
         }
     };
 
@@ -412,6 +420,19 @@ public class ChatService extends Service {
             sendStatus(task, new TaskStatus(type, ""));
 
             connectionManager.connect();
+        }
+    };
+
+    private final NetAdminListener netAdminListener = new NetAdminListener() {
+        @Override
+        public void onRoomsChanged() {
+            sendBroadcast(new Intent(ChatService.NETADMIN));
+        }
+
+        @Override
+        public void onComputerChanged(String computerId, Computer computer) {
+            sendBroadcast(new Intent(ChatService.NETADMIN)
+                .putExtra("computer", computer));
         }
     };
 
@@ -775,5 +796,9 @@ public class ChatService extends Service {
         } catch (SmackException.NotConnectedException | InterruptedException e) {
             Log.e(TAG, "Failed to send task", e);
         }
+    }
+
+    public NetAdminManager getNetAdminManager() {
+        return netAdminManager;
     }
 }
