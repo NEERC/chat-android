@@ -91,6 +91,8 @@ import ru.ifmo.neerc.task.TaskStatus;
 import ru.ifmo.neerc.task.TaskRegistry;
 import ru.ifmo.neerc.task.TaskRegistryListener;
 import ru.ifmo.neerc.chat.ChatMessage;
+import ru.ifmo.neerc.chat.packet.ComputerExtension;
+import ru.ifmo.neerc.chat.packet.ComputerExtensionProvider;
 import ru.ifmo.neerc.chat.packet.OobExtension;
 import ru.ifmo.neerc.chat.packet.OobExtensionProvider;
 import ru.ifmo.neerc.chat.packet.TaskExtension;
@@ -424,6 +426,7 @@ public class ChatService extends Service {
         ProviderManager.addIQProvider(UserList.ELEMENT_NAME, UserList.NAMESPACE, new UserListProvider());
         ProviderManager.addExtensionProvider(TaskExtension.ELEMENT_NAME, TaskExtension.NAMESPACE, new TaskExtensionProvider());
         ProviderManager.addExtensionProvider(OobExtension.ELEMENT_NAME, OobExtension.NAMESPACE, new OobExtensionProvider());
+        ProviderManager.addExtensionProvider(ComputerExtension.ELEMENT_NAME, ComputerExtension.NAMESPACE, new ComputerExtensionProvider());
 
         SharedPreferences preferences = getSharedPreferences(CONNECTION, MODE_PRIVATE);
         room = preferences.getString("room", "neerc");
