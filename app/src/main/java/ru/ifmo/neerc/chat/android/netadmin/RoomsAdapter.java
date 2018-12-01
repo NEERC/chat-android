@@ -28,6 +28,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.util.Log;
 
+import ru.ifmo.neerc.chat.android.AutoGridLayoutManager;
 import ru.ifmo.neerc.chat.android.ChatService;
 import ru.ifmo.neerc.chat.android.R;
 
@@ -46,7 +47,7 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.ViewHolder> 
             nameView = (TextView) view.findViewById(R.id.name);
             computerList = (RecyclerView) view.findViewById(R.id.computer_list);
 
-            LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext(), LinearLayoutManager.HORIZONTAL, false);
+            AutoGridLayoutManager layoutManager = new AutoGridLayoutManager(view.getContext(), 32);
             computerList.setLayoutManager(layoutManager);
         }
     }
