@@ -44,6 +44,7 @@ import android.graphics.Typeface;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.text.Spanned;
 import android.text.SpannableStringBuilder;
@@ -88,6 +89,7 @@ import ru.ifmo.neerc.chat.android.netadmin.Computer;
 import ru.ifmo.neerc.chat.android.netadmin.NetAdminListener;
 import ru.ifmo.neerc.chat.android.netadmin.NetAdminManager;
 import ru.ifmo.neerc.chat.android.push.FirebasePushNotificationsManager;
+import ru.ifmo.neerc.chat.android.settings.SettingsActivity;
 import ru.ifmo.neerc.task.Task;
 import ru.ifmo.neerc.task.TaskActions;
 import ru.ifmo.neerc.task.TaskStatus;
@@ -144,6 +146,8 @@ public class ChatService extends Service {
 
     private ConnectionManager connectionManager;
     private FirebasePushNotificationsManager pushNotificationsManager;
+
+    private boolean isNetAdminEnabled = false;
     private NetAdminManager netAdminManager;
 
     private AbstractXMPPConnection connection;
@@ -194,8 +198,10 @@ public class ChatService extends Service {
 
             pushNotificationsManager = FirebasePushNotificationsManager.getInstanceFor(connection);
 
-            netAdminManager = NetAdminManager.getInstanceFor(connection);
-            netAdminManager.addListener(netAdminListener);
+            if (isNetAdminEnabled) {
+                netAdminManager = NetAdminManager.getInstanceFor(connection);
+                netAdminManager.addListener(netAdminListener);
+            }
         }
     };
 
@@ -459,6 +465,9 @@ public class ChatService extends Service {
         taskRegistry.addListener(taskRegistryListener);
 
         registerReceiver(taskActionReceiver, new IntentFilter(TASK_ACTION));
+
+        SharedPreferences defaultPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        isNetAdminEnabled = defaultPreferences.getBoolean(SettingsActivity.KEY_PREF_NETADMIN, false);
 
         connect();
     }
@@ -796,6 +805,10 @@ public class ChatService extends Service {
         } catch (SmackException.NotConnectedException | InterruptedException e) {
             Log.e(TAG, "Failed to send task", e);
         }
+    }
+
+    public boolean isNetAdminEnabled() {
+        return isNetAdminEnabled;
     }
 
     public NetAdminManager getNetAdminManager() {

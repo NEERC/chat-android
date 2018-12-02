@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 public class SettingsActivity extends Activity {
     public static final String KEY_PREF_KEEP_CONNECTION = "pref_keepConnection";
+    public static final String KEY_PREF_NETADMIN = "pref_netadmin";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

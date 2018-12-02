@@ -93,6 +93,12 @@
         May cause higher battery drain.
     </string>
 
+    <string name="pref_experimental_title">Experimental</string>
+    <string name="pref_netadmin">NetAdmin viewer</string>
+    <string name="pref_netadmin_summ">
+        Extremely buggy, use at your own risk.
+    </string>
+
     <!-- Toasts -->
     <string name="toast_photo_upload_failed">Photo upload failed, please try again</string>
 

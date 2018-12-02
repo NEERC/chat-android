@@ -156,7 +156,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return COUNT;
+            int count = COUNT;
+            if (!ChatService.getInstance().isNetAdminEnabled()) {
+                count -= 1;
+            }
+            return count;
         }
 
         @Override

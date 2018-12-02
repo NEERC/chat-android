@@ -9,4 +9,14 @@
             android:summary="@string/pref_keepConnection_summ"
             android:defaultValue="false" />
     </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_experimental_title"
+        android:key="pref_key_experimental">
+        <CheckBoxPreference
+            android:key="pref_netadmin"
+            android:title="@string/pref_netadmin"
+            android:summary="@string/pref_netadmin_summ"
+            android:defaultValue="false" />
+    </PreferenceCategory>
 </PreferenceScreen>
