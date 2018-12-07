@@ -9,8 +9,8 @@ android {
         minSdkVersion 14
         targetSdkVersion 26
 
-        versionCode 23
-        versionName "0.6.0"
+        versionCode 24
+        versionName "0.6.1"
     }
 
     flavorDimensions "tier"
