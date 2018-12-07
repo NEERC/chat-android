@@ -27,6 +27,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import ru.ifmo.neerc.chat.android.ChatService;
 import ru.ifmo.neerc.chat.android.R;
@@ -34,6 +35,7 @@ import ru.ifmo.neerc.chat.android.R;
 public class NetAdminFragment extends Fragment {
 
     private RecyclerView roomList;
+    private ProgressBar discoveringProgress;
 
     private RoomsAdapter adapter;
     private BroadcastReceiver netadminReceiver;
@@ -43,6 +45,7 @@ public class NetAdminFragment extends Fragment {
         View view = inflater.inflate(R.layout.netadmin, container, false);
 
         roomList = (RecyclerView) view.findViewById(R.id.room_list);
+        discoveringProgress = (ProgressBar) view.findViewById(R.id.discovering_progress);
 
         return view;
     }
@@ -66,13 +69,13 @@ public class NetAdminFragment extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Computer computer = (Computer) intent.getSerializableExtra("computer");
-                adapter.update(computer);
+                updateRooms(computer);
             }
         };
 
         getContext().registerReceiver(netadminReceiver, new IntentFilter(ChatService.NETADMIN));
 
-        adapter.update(null);
+        updateRooms(null);
     }
 
     @Override
@@ -80,5 +83,16 @@ public class NetAdminFragment extends Fragment {
         super.onStop();
 
         getContext().unregisterReceiver(netadminReceiver);
+    }
+
+    private void updateRooms(Computer computer) {
+        if (computer == null) {
+            if (ChatService.getInstance().getNetAdminManager().isDiscovering()) {
+                discoveringProgress.setVisibility(View.VISIBLE);
+            } else {
+                discoveringProgress.setVisibility(View.GONE);
+            }
+        }
+        adapter.update(null);
     }
 }
