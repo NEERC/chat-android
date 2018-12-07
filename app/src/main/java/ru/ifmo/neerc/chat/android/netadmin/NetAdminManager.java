@@ -52,6 +52,8 @@ public class NetAdminManager {
 
     private final List<NetAdminListener> listeners = new ArrayList<NetAdminListener>();
 
+    private boolean isDiscovering = false;
+
     private final ItemEventListener<PayloadItem<ComputerExtension>> computerListener = new ItemEventListener<PayloadItem<ComputerExtension>>() {
         @Override
         public void handlePublishedItems(ItemPublishEvent<PayloadItem<ComputerExtension>> items) {
@@ -63,8 +65,10 @@ public class NetAdminManager {
 
                 Log.d(TAG, "Computer " + computer.getName() + " is " + (computer.isReachable() ? "reachable" : "not reachable"));
 
-                for (NetAdminListener listener : listeners) {
-                    listener.onComputerChanged(computer.getName(), computer);
+                if (!isDiscovering) {
+                    for (NetAdminListener listener : listeners) {
+                        listener.onComputerChanged(computer.getName(), computer);
+                    }
                 }
             }
         }
@@ -92,8 +96,16 @@ public class NetAdminManager {
         listeners.add(listener);
     }
 
+    public boolean isDiscovering() {
+        return isDiscovering;
+    }
+
     public Collection<String> getRooms() {
-        return Collections.unmodifiableSet(rooms.keySet());
+        if (isDiscovering) {
+            return Collections.emptySet();
+        } else {
+            return Collections.unmodifiableSet(rooms.keySet());
+        }
     }
 
     public Collection<Computer> getComputers(String room) {
@@ -102,6 +114,12 @@ public class NetAdminManager {
 
     private void discoverRooms() throws XMPPErrorException, NoResponseException, NotConnectedException, InterruptedException {
         Log.d(TAG, "Discovering rooms");
+
+        isDiscovering = true;
+
+        for (NetAdminListener listener : listeners) {
+            listener.onRoomsChanged();
+        }
 
         DiscoverItems roomItems = pubSubManager.discoverNodes(ROOT_NODE_ID);
 
@@ -128,6 +146,8 @@ public class NetAdminManager {
                 computerNode.subscribe(connection.getUser().toString());
             }
         }
+
+        isDiscovering = false;
 
         for (NetAdminListener listener : listeners) {
             listener.onRoomsChanged();
