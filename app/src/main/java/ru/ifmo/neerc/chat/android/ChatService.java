@@ -310,6 +310,10 @@ public class ChatService extends Service {
 
             ChatMessage chatMessage = new ChatMessage(message.getBody(), url, user, null, time);
 
+            if (chatMessage.getType() == ChatMessage.Type.channel) {
+                return; // XXX Add channels support
+            }
+
             if (chatMessage.getTo() != null
                     && !chatMessage.getUser().getName().equals(getUser())
                     && !chatMessage.getTo().equals(getUser())) {
