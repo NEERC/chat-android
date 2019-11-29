@@ -48,7 +48,7 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
     private final List<String> users = new ArrayList<String>();
     private final Set<Task> expandedTasks = new HashSet<Task>();
 
-    private int selectedPosition = -1;
+    private String selectedTask = null;
 
     private View.OnClickListener listener;
 
@@ -120,7 +120,7 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
         for (String user : users) {
             statuses.put(user, task.getStatus(user));
         }
-        holder.itemView.setActivated(position == selectedPosition);
+        holder.itemView.setActivated(task.getId().equals(selectedTask));
         holder.setTitle(task.getTitle());
         holder.setExpanded(expandedTasks.contains(task));
         holder.setStatuses(statuses);
@@ -148,27 +148,46 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
     }
 
     public void setSelectedTask(int position) {
-        if (selectedPosition >= 0)
-            notifyItemChanged(selectedPosition);
-        selectedPosition = position;
-        if (position >= 0)
-            notifyItemChanged(position);
+        if (position < 0) {
+            setSelectedTask(null);
+            return;
+        }
+
+        if (position >= tasks.size()) {
+            return;
+        }
+
+        Task task = tasks.get(position);
+        setSelectedTask(task.getId());
     }
 
     public void setSelectedTask(String taskId) {
-        Integer position = taskPositions.get(taskId);
-        if (position != null) {
-            setSelectedTask(position);
-        } else {
-            setSelectedTask(-1);
+        if (selectedTask != null) {
+            Integer oldPosition = taskPositions.get(selectedTask);
+            if (oldPosition != null) {
+                notifyItemChanged(oldPosition);
+            }
         }
+
+        if (taskId != null) {
+            Integer position = taskPositions.get(taskId);
+            if (position != null) {
+                notifyItemChanged(position);
+            }
+        }
+
+        selectedTask = taskId;
     }
 
     public Task getSelectedTask() {
-        int index = selectedPosition;
-        if (index < 0 || index >= tasks.size())
+        if (selectedTask == null) {
             return null;
-        return tasks.get(index);
+        }
+
+        Integer position = taskPositions.get(selectedTask);
+        if (position == null || position >= tasks.size())
+            return null;
+        return tasks.get(position);
     }
 
     public Task getTask(int position) {
